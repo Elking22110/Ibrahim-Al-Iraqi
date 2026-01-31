@@ -17,7 +17,7 @@ export default {
         serif: ['Playfair Display', 'serif'],
         sans: ['Inter', 'sans-serif'],
         bold: ['Oswald', 'sans-serif'],
-        bold: ['Oswald', 'sans-serif'],
+
         script: ['Allura', 'cursive'],
         'great-vibes': ['Great Vibes', 'cursive'],
         'bodoni': ['Bodoni Moda', 'serif'],

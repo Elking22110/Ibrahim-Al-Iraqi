@@ -50,7 +50,7 @@ const ModernHero = ({ t, lang }) => {
                     playsInline
                     className="w-full h-full object-cover scale-105" // Slight scale to avoid edge artifacts
                 >
-                    <source src="/the%20new%20Background/تحويل_صورة_إلى_فيديو_لموقع.mp4" type="video/mp4" />
+                    <source src="/the%20new%20Background/hero-bg.mp4" type="video/mp4" />
                 </video>
                 {/* Overlay gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-black/20 to-black/40"></div>
