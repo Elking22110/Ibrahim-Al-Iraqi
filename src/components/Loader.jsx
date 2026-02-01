@@ -63,7 +63,7 @@ const Loader = ({ onComplete, t, lang }) => {
                         {/* Video Layer */}
                         <video
                             ref={videoRef}
-                            src="/intro.mp4"
+                            src="https://res.cloudinary.com/dfxh95yzm/video/upload/v1769971010/intro_ycuk3h.mp4"
                             loop
                             playsInline
                             className="w-full h-full object-cover shadow-2xl"

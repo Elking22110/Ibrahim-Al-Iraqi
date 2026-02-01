@@ -90,7 +90,7 @@ const CollectionGrid = ({ t, lang }) => {
                         whileHover={{ flex: 3 }}
                         transition={{ duration: 0.6, ease: "easeInOut" }}
                     >
-                        <img src="/tailor.png" alt="Gallery 4" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
+                        <img src="https://res.cloudinary.com/dfxh95yzm/image/upload/v1769970982/tailor_uk6jyl.jpg" alt="Gallery 4" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
                         <div className="absolute inset-0 bg-black/60 group-hover:bg-transparent transition-colors duration-500"></div>
                         <div className="absolute bottom-0 left-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-200">
                             <span className="text-[#D4AF37] text-xs tracking-[0.3em] font-bold uppercase">Craft</span>
