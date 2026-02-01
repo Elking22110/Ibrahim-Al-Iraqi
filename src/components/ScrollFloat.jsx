@@ -24,6 +24,20 @@ const ScrollFloat = ({
 
     const splitText = useMemo(() => {
         const text = typeof children === 'string' ? children : '';
+        // Check for Arabic characters
+        const isArabic = /[\u0600-\u06FF]/.test(text);
+
+        if (isArabic) {
+            // For Arabic, split by words to preserve ligatures, or don't split at all if needed. 
+            // Splitting by word is usually a good compromise for animation.
+            return text.split(' ').map((word, index) => (
+                <span className="char inline-block mr-2" key={index}> {/* mr-2 for spacing between words */}
+                    {word}&nbsp;
+                </span>
+            ));
+        }
+
+        // For non-Arabic, maintain original character splitting
         return text.split('').map((char, index) => (
             <span className="char" key={index}>
                 {char === ' ' ? '\u00A0' : char}

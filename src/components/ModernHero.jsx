@@ -73,7 +73,7 @@ const ModernHero = ({ t, lang }) => {
                 </motion.h2>
 
                 {/* 2. Main Title: Masked Slide-Up Reveal */}
-                <div className="overflow-hidden mb-8 w-full px-4">
+                <div className="overflow-hidden mb-8 w-full px-4 py-4 md:py-6"> {/* Added vertical padding for descenders */}
                     <motion.h1
                         initial={{ y: "110%", skewY: 5 }}
                         animate={{ y: "0%", skewY: 0 }}

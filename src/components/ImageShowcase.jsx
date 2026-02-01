@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 const ImageShowcase = ({ lang }) => {
     return (
-        <section className="w-full py-24 px-8 md:px-20 bg-[#050505]">
+        <section className="w-full py-24 px-8 md:px-20">
             {/* Intro Text */}
             <motion.div
                 initial={{ opacity: 0, y: 30 }}

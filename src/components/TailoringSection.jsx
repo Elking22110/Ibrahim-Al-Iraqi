@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 const TailoringSection = ({ t, lang }) => {
     return (
-        <section id="bespoke" className={`w-full py-32 bg-[#050505] relative overflow-hidden ${lang === 'ar' ? 'font-cairo' : ''}`}>
+        <section id="bespoke" className={`w-full py-32 relative overflow-hidden ${lang === 'ar' ? 'font-cairo' : ''}`}>
             <div className="container mx-auto px-8 md:px-20 relative z-10 flex flex-col md:flex-row items-center gap-16">
 
                 {/* Text Content */}

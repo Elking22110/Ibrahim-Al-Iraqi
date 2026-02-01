@@ -9,6 +9,7 @@ import LuxuryCursor from './components/LuxuryCursor';
 import Navbar from './components/Navbar';
 import SocialDock from './components/SocialDock';
 import Loader from './components/Loader';
+import LuxuryBackground from './components/LuxuryBackground';
 import ContactSection from './components/ContactSection';
 import { content } from './content';
 
@@ -43,6 +44,7 @@ function App() {
 
     return (
         <div className={`w-full min-h-screen bg-[#050505] overflow-x-hidden relative ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}>
+            <LuxuryBackground />
             <LuxuryCursor />
 
             {/* Global Background Beams - Removed per user request */}

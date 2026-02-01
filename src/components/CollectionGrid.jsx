@@ -10,7 +10,7 @@ const CollectionGrid = ({ t, lang }) => {
     ];
 
     return (
-        <section id="collection" className={`w-full py-32 bg-[#050505] ${lang === 'ar' ? 'font-cairo' : ''}`}>
+        <section id="collection" className={`w-full py-32 ${lang === 'ar' ? 'font-cairo' : ''}`}>
             <div className="container mx-auto px-8 md:px-20">
 
                 {/* Header */}
@@ -29,7 +29,7 @@ const CollectionGrid = ({ t, lang }) => {
                         scrollStart='top bottom-=20%'
                         scrollEnd='bottom bottom-=20%'
                         stagger={0.1}
-                        containerClassName={`mb-6 ${lang === 'ar' ? 'font-amiri' : 'font-serif'}`}
+                        containerClassName={`mb-6 py-4 ${lang === 'ar' ? 'font-amiri' : 'font-serif'}`} // Added py-4 to increase box height
                         textClassName="text-5xl md:text-7xl text-white"
                     >
                         {t?.title}
