@@ -47,9 +47,7 @@ function App() {
             <LuxuryBackground />
             <LuxuryCursor />
 
-            {/* Global Background Beams - Removed per user request */}
 
-            {/* Global 3D Background - Removed for Cinematic Video/Code Intro */}
 
             {/* Intro Loader */}
             <AnimatePresence>

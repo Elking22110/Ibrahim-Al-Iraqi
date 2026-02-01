@@ -13,31 +13,31 @@ const ModernHero = ({ t, lang }) => {
         const video = videoRef.current;
         if (!video) return;
 
-        // 1. Try to play with sound immediately
-        video.muted = false;
-        video.play()
-            .then(() => {
-                // Success: Audio is playing
-            })
-            .catch((error) => {
-                console.warn("Hero Video Autoplay blocked. Muting and retrying.", error);
-                video.muted = true;
-                video.play().catch(e => console.error("Video playback failed completely", e));
+        // Default to muted autoplay (browser policy compliant)
+        video.muted = true;
+        video.play().catch(e => console.warn("Video playback initialized as muted (Autoplay policy).", e));
 
-                // 2. Fallback: Unmute on FIRST interaction
-                const enableSound = () => {
-                    video.muted = false;
-                    video.volume = 1.0;
-                    // Remove listeners once sound is enabled
-                    document.removeEventListener('click', enableSound);
-                    document.removeEventListener('touchstart', enableSound);
-                    document.removeEventListener('keydown', enableSound);
-                };
+        // Unmute on FIRST interaction
+        const enableSound = () => {
+            if (video.muted) {
+                video.muted = false;
+                video.volume = 1.0;
+            }
+            // Remove listeners once sound is enabled
+            document.removeEventListener('click', enableSound);
+            document.removeEventListener('touchstart', enableSound);
+            document.removeEventListener('keydown', enableSound);
+        };
 
-                document.addEventListener('click', enableSound);
-                document.addEventListener('touchstart', enableSound);
-                document.addEventListener('keydown', enableSound);
-            });
+        document.addEventListener('click', enableSound);
+        document.addEventListener('touchstart', enableSound);
+        document.addEventListener('keydown', enableSound);
+
+        return () => {
+            document.removeEventListener('click', enableSound);
+            document.removeEventListener('touchstart', enableSound);
+            document.removeEventListener('keydown', enableSound);
+        };
     }, []);
 
     return (
@@ -47,6 +47,7 @@ const ModernHero = ({ t, lang }) => {
                 <video
                     ref={videoRef}
                     autoPlay
+                    muted
                     loop
                     playsInline
                     className="w-full h-full object-cover scale-105" // Slight scale to avoid edge artifacts
