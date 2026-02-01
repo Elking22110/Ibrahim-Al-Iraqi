@@ -59,7 +59,7 @@ const TailoringSection = ({ t, lang }) => {
                 >
                     <div className="aspect-[3/4] overflow-hidden rounded-sm relative group bg-[#111]">
                         <img
-                            src="https://res.cloudinary.com/dfxh95yzm/image/upload/v1769970966/founder_ypgvjx.jpg"
+                            src="https://res.cloudinary.com/dfxh95yzm/image/upload/f_auto,q_auto,w_800/v1769970966/founder_ypgvjx.jpg"
                             alt="Tailoring Art"
                             className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 opacity-90 group-hover:opacity-100"
                         />

@@ -36,7 +36,7 @@ const ImageShowcase = ({ lang }) => {
                 >
                     <div className="overflow-hidden mb-6 relative h-[600px]">
                         <img
-                            src="/fabric-detail.png"
+                            src="https://res.cloudinary.com/dfxh95yzm/image/upload/f_auto,q_auto,w_800/v1769970967/fabric-detail_suwutq.jpg"
                             alt="Fabric Detail"
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         />
@@ -61,7 +61,7 @@ const ImageShowcase = ({ lang }) => {
                 >
                     <div className="overflow-hidden mb-6 relative h-[600px]">
                         <img
-                            src="/man-posing.png"
+                            src="https://res.cloudinary.com/dfxh95yzm/image/upload/f_auto,q_auto,w_800/v1769970978/man-posing_mdlflr.jpg"
                             alt="Man Posing"
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         />

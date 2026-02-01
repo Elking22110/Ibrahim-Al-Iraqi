@@ -48,7 +48,7 @@ const CollectionGrid = ({ t, lang }) => {
                         whileHover={{ flex: 3 }}
                         transition={{ duration: 0.6, ease: "easeInOut" }}
                     >
-                        <img src="/collection-group.png" alt="Gallery 1" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
+                        <img src="https://res.cloudinary.com/dfxh95yzm/image/upload/f_auto,q_auto,w_800/v1769970969/collection-group_cjem22.jpg" alt="Gallery 1" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
                         <div className="absolute inset-0 bg-black/60 group-hover:bg-transparent transition-colors duration-500"></div>
                         <div className="absolute bottom-0 left-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-200">
                             <span className="text-[#D4AF37] text-xs tracking-[0.3em] font-bold uppercase">Signature</span>
@@ -62,7 +62,7 @@ const CollectionGrid = ({ t, lang }) => {
                         whileHover={{ flex: 3 }}
                         transition={{ duration: 0.6, ease: "easeInOut" }}
                     >
-                        <img src="/man-posing.png" alt="Gallery 2" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 object-top" />
+                        <img src="https://res.cloudinary.com/dfxh95yzm/image/upload/f_auto,q_auto,w_600/v1769970978/man-posing_mdlflr.jpg" alt="Gallery 2" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 object-top" />
                         <div className="absolute inset-0 bg-black/60 group-hover:bg-transparent transition-colors duration-500"></div>
                         <div className="absolute bottom-0 left-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-200">
                             <span className="text-[#D4AF37] text-xs tracking-[0.3em] font-bold uppercase">Persona</span>
@@ -76,7 +76,7 @@ const CollectionGrid = ({ t, lang }) => {
                         whileHover={{ flex: 3 }}
                         transition={{ duration: 0.6, ease: "easeInOut" }}
                     >
-                        <img src="/fabric-detail.png" alt="Gallery 3" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
+                        <img src="https://res.cloudinary.com/dfxh95yzm/image/upload/f_auto,q_auto,w_800/v1769970967/fabric-detail_suwutq.jpg" alt="Gallery 3" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
                         <div className="absolute inset-0 bg-black/60 group-hover:bg-transparent transition-colors duration-500"></div>
                         <div className="absolute bottom-0 left-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-200">
                             <span className="text-[#D4AF37] text-xs tracking-[0.3em] font-bold uppercase">Details</span>
@@ -90,7 +90,7 @@ const CollectionGrid = ({ t, lang }) => {
                         whileHover={{ flex: 3 }}
                         transition={{ duration: 0.6, ease: "easeInOut" }}
                     >
-                        <img src="https://res.cloudinary.com/dfxh95yzm/image/upload/v1769970982/tailor_uk6jyl.jpg" alt="Gallery 4" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
+                        <img src="https://res.cloudinary.com/dfxh95yzm/image/upload/f_auto,q_auto,w_800/v1769970982/tailor_uk6jyl.jpg" alt="Gallery 4" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
                         <div className="absolute inset-0 bg-black/60 group-hover:bg-transparent transition-colors duration-500"></div>
                         <div className="absolute bottom-0 left-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-200">
                             <span className="text-[#D4AF37] text-xs tracking-[0.3em] font-bold uppercase">Craft</span>
