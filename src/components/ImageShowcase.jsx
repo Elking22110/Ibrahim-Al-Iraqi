@@ -78,24 +78,7 @@ const ImageShowcase = ({ lang }) => {
 
             </div>
 
-            {/* Footer CTA */}
-            <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8 }}
-                viewport={{ once: true }}
-                className="mt-32 text-center"
-            >
-                <h2 className={`text-4xl md:text-7xl font-bold text-gray-200 mb-8 select-none tracking-widest ${lang === 'ar' ? 'font-amiri' : 'font-serif'}`}>
-                    {lang === 'ar' ? 'إبراهيم العراقي' : 'IBRAHIM AL-IRAQI'}
-                </h2>
-                <div className="relative z-10">
-                    <p className="text-gray-400 mb-6 font-medium">Ready to experience the difference?</p>
-                    <button className="bg-white text-black px-12 py-4 uppercase tracking-[0.2em] text-xs font-bold hover:bg-[#D4AF37] hover:text-white transition-all shadow-xl">
-                        Start Configuration
-                    </button>
-                </div>
-            </motion.div>
+
         </section>
     );
 };
