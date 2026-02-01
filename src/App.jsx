@@ -68,7 +68,7 @@ function App() {
                                 <Suspense fallback={null}>
                                     <ModernHero t={t.hero} lang={lang} />
                                     <TailoringSection t={t.tailoring} lang={lang} />
-                                    <ImageShowcase />
+                                    <ImageShowcase lang={lang} />
                                     <CollectionGrid t={t.collection} lang={lang} />
                                     <ContactSection t={t.contact} lang={lang} />
                                     <Footer t={t.footer} lang={lang} />

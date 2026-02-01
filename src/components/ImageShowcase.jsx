@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const ImageShowcase = () => {
+const ImageShowcase = ({ lang }) => {
     return (
         <section className="w-full py-24 px-8 md:px-20 bg-[#050505]">
             {/* Intro Text */}
@@ -86,8 +86,10 @@ const ImageShowcase = () => {
                 viewport={{ once: true }}
                 className="mt-32 text-center"
             >
-                <h2 className="text-6xl md:text-8xl font-serif text-gray-200 mb-8 select-none">BESPOKE</h2>
-                <div className="-mt-12 relative z-10">
+                <h2 className={`text-4xl md:text-7xl font-bold text-gray-200 mb-8 select-none tracking-widest ${lang === 'ar' ? 'font-amiri' : 'font-serif'}`}>
+                    {lang === 'ar' ? 'إبراهيم العراقي' : 'IBRAHIM AL-IRAQI'}
+                </h2>
+                <div className="relative z-10">
                     <p className="text-gray-400 mb-6 font-medium">Ready to experience the difference?</p>
                     <button className="bg-white text-black px-12 py-4 uppercase tracking-[0.2em] text-xs font-bold hover:bg-[#D4AF37] hover:text-white transition-all shadow-xl">
                         Start Configuration
