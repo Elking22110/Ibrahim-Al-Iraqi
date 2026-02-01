@@ -76,9 +76,9 @@ const Loader = ({ onComplete, t, lang }) => {
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1, delay: 0.8, ease: "easeOut" }}
-                    className="font-pinyon text-5xl md:text-8xl text-[#F2E8C9] mb-4 tracking-wider"
+                    className="font-bodoni text-5xl md:text-8xl text-[#F2E8C9] mb-4 tracking-wider"
                 >
-                    Welcome
+                    {t?.welcome || "Welcome"}
                 </motion.span>
 
                 {/* Italian Luxury Brand Name */}
