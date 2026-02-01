@@ -1,17 +1,19 @@
 import React, { Suspense, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModernHero from './components/ModernHero';
-import ImageShowcase from './components/ImageShowcase';
-import TailoringSection from './components/TailoringSection';
-import CollectionGrid from './components/CollectionGrid';
-import Footer from './components/Footer';
 import LuxuryCursor from './components/LuxuryCursor';
 import Navbar from './components/Navbar';
 import SocialDock from './components/SocialDock';
 import Loader from './components/Loader';
 import LuxuryBackground from './components/LuxuryBackground';
-import ContactSection from './components/ContactSection';
 import { content } from './content';
+
+// Lazy Load Section Components for Performance
+const ImageShowcase = React.lazy(() => import('./components/ImageShowcase'));
+const TailoringSection = React.lazy(() => import('./components/TailoringSection'));
+const CollectionGrid = React.lazy(() => import('./components/CollectionGrid'));
+const Footer = React.lazy(() => import('./components/Footer'));
+const ContactSection = React.lazy(() => import('./components/ContactSection'));
 
 
 function App() {

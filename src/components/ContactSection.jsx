@@ -25,7 +25,7 @@ const ContactSection = ({ t, lang }) => {
         <section id="contact" className={`relative w-full py-24 bg-[#050505] text-white overflow-hidden ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}>
             {/* Background Image with HEAVY Overlay */}
             <div className="absolute inset-0 z-0">
-                <img src="https://res.cloudinary.com/dfxh95yzm/image/upload/f_auto,q_auto,w_1200/v1769970967/fabric-detail_suwutq.jpg" alt="Tailoring Craft" className="w-full h-full object-cover opacity-20" />
+                <img src="https://res.cloudinary.com/dfxh95yzm/image/upload/f_auto,q_auto:eco,w_800/v1769970967/fabric-detail_suwutq.jpg" alt="Tailoring Craft" className="w-full h-full object-cover opacity-20" />
                 <div className="absolute inset-0 bg-[#050505]/90"></div>
             </div>
 
