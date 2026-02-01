@@ -40,7 +40,7 @@ function App() {
         // Simulate asset loading interaction
         const timer = setTimeout(() => {
             setIsLoading(false);
-        }, 2200);
+        }, 1000); // Reduced from 2200ms to improve LCP
         return () => clearTimeout(timer);
     }, []);
 
