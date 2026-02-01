@@ -75,7 +75,7 @@ const ModernHero = ({ t, lang }) => {
                         initial={{ y: "110%", skewY: 5 }}
                         animate={{ y: "0%", skewY: 0 }}
                         transition={{ duration: 1.2, delay: 0.8, ease: [0.22, 1, 0.36, 1] }} // Custom "Luxury" Bezier
-                        className={`text-white text-5xl md:text-7xl lg:text-9xl font-bold drop-shadow-2xl ${lang === 'ar' ? 'font-amiri leading-normal' : 'font-serif leading-[0.9]'}`}
+                        className={`text-white text-5xl md:text-7xl ${lang === 'ar' ? 'lg:text-7xl font-amiri leading-normal' : 'lg:text-9xl font-serif leading-[0.9]'} font-bold drop-shadow-2xl`}
                     >
                         {lang === 'ar' ? 'إبراهيم العراقي' : 'IBRAHIM AL-IRAQI'}
                     </motion.h1>
