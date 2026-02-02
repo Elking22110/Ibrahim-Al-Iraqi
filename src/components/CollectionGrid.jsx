@@ -51,20 +51,21 @@ const CollectionGrid = ({ t, lang }) => {
                 </div>
 
                 {/* Initial Featured View (Top 4) */}
-                <div className="flex flex-col lg:flex-row gap-4 h-[100vh] lg:h-[600px] w-full mb-12">
+                <div className="flex flex-col lg:flex-row gap-4 h-auto min-h-screen lg:min-h-0 lg:h-[600px] w-full mb-12">
                     {featuredImages.map((img, index) => (
                         <motion.div
                             key={index}
                             className="relative flex-1 group overflow-hidden rounded-sm cursor-pointer border border-white/5"
+                            layout
                             whileHover={{ flex: 3 }}
-                            transition={{ duration: 0.6, ease: "easeInOut" }}
+                            transition={{ duration: 1.2, ease: "easeInOut" }}
                         >
                             <img
                                 src={`/The Gallery/${img}`}
                                 alt={`Featured ${index + 1}`}
-                                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                                className="w-full h-full object-cover grayscale-0 md:grayscale md:group-hover:grayscale-0 transition-all duration-700"
                             />
-                            <div className="absolute inset-0 bg-black/60 group-hover:bg-transparent transition-colors duration-500"></div>
+                            <div className="absolute inset-0 bg-transparent md:bg-black/60 md:group-hover:bg-transparent transition-colors duration-500"></div>
 
                             {/* Optional Label Overlay */}
                             <div className="absolute bottom-0 left-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-200">
