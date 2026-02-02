@@ -61,14 +61,20 @@ const Loader = ({ onComplete, t, lang }) => {
                 >
                     <div className="w-40 h-40 md:w-56 md:h-56 relative flex items-center justify-center overflow-hidden rounded-xl">
                         {/* Video Layer */}
-                        {/* Video Layer */}
+                        {/* Video Layer - Desktop Only */}
                         <video
                             ref={videoRef}
                             src="/the%20new%20Background/freecompress-intro_ycuk3h.mp4"
                             loop
                             playsInline
                             preload="auto"
-                            className="w-full h-full object-cover shadow-2xl"
+                            className="hidden md:block w-full h-full object-cover shadow-2xl"
+                        />
+                        {/* Static Logo - Mobile Fallback */}
+                        <img
+                            src="/the%20new%20Background/logo_hswh7n%20(1).jpg"
+                            alt="Logo"
+                            className="block md:hidden w-full h-full object-contain scale-90"
                         />
                     </div>
                 </motion.div>
