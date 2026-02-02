@@ -24,9 +24,6 @@ const Prism = ({
         const container = containerRef.current;
         if (!container) return;
 
-        // Mobile Optimization: Disable Prism on small screens to save GPU
-        if (typeof window !== 'undefined' && window.innerWidth < 768) return;
-
         const H = Math.max(0.001, height);
         const BW = Math.max(0.001, baseWidth);
         const BASE_HALF = BW * 0.5;
