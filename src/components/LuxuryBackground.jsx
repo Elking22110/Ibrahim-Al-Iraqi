@@ -23,7 +23,7 @@ const LuxuryBackground = () => {
         window.addEventListener('resize', setSize);
 
         // Particle configuration
-        const particleCount = 60;
+        const particleCount = 85; // Increased density for richness
         const particles = [];
 
         class Particle {
@@ -36,21 +36,31 @@ const LuxuryBackground = () => {
             reset() {
                 this.x = Math.random() * width;
                 this.y = height + 10;
-                this.size = Math.random() * 2 + 0.5; // Small, elegant size
-                this.speedY = Math.random() * 0.3 + 0.1; // Very slow rise
-                this.opacity = Math.random() * 0.5 + 0.1; // Subtle opacity
-                this.fadeSpeed = Math.random() * 0.002 + 0.001;
-                this.color = '#D4AF37'; // Gold color
+                this.size = Math.random() * 2.5 + 0.5; // Slightly varied sizes
+                this.speedY = Math.random() * 1.2 + 0.4; // FASTER: 0.4 to 1.6 px/frame
+                this.speedX = (Math.random() - 0.5) * 0.5; // Slight drift
+                this.opacity = Math.random() * 0.5 + 0.1;
+                this.fadeSpeed = Math.random() * 0.01 + 0.005; // Faster fade for twinkle
+                this.isTwinkling = Math.random() > 0.9; // 10% chance to be a high-glint particle
             }
 
             update() {
                 this.y -= this.speedY;
+                this.x += Math.sin(this.y * 0.02) * 0.3 + this.speedX; // Organic wave motion
 
-                // Subtle fade in/out slightly
-                if (this.opacity <= 0.1 || this.opacity >= 0.5) {
-                    this.fadeSpeed *= -1;
+                // Twinkle Effect
+                if (this.isTwinkling) {
+                    this.opacity += this.fadeSpeed * 2;
+                    if (this.opacity >= 1 || this.opacity <= 0.2) {
+                        this.fadeSpeed *= -1;
+                    }
+                } else {
+                    // Standard pulse
+                    if (this.opacity <= 0.1 || this.opacity >= 0.4) {
+                        this.fadeSpeed *= -1;
+                    }
+                    this.opacity += this.fadeSpeed;
                 }
-                this.opacity += this.fadeSpeed;
 
                 // Reset if off screen
                 if (this.y < -10) {
@@ -61,8 +71,18 @@ const LuxuryBackground = () => {
             draw() {
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+
+                // Add a subtle glow to larger particles
+                if (this.size > 2) {
+                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = "rgba(212, 175, 55, 0.5)";
+                } else {
+                    ctx.shadowBlur = 0;
+                }
+
                 ctx.fillStyle = `rgba(212, 175, 55, ${this.opacity})`; // Gold with alpha
                 ctx.fill();
+                ctx.shadowBlur = 0; // Reset
             }
         }
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import ScrollFloat from './ScrollFloat';
+import Prism from './Prism';
 
 const ContactSection = ({ t, lang }) => {
     const [formData, setFormData] = useState({
@@ -25,42 +26,69 @@ const ContactSection = ({ t, lang }) => {
         <section id="contact" className={`relative w-full py-24 bg-[#050505] text-white overflow-hidden ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}>
             {/* Background Image with HEAVY Overlay */}
             <div className="absolute inset-0 z-0">
-                <img src="https://res.cloudinary.com/dfxh95yzm/image/upload/f_auto,q_auto:eco,w_800/v1769970967/fabric-detail_suwutq.jpg" alt="Tailoring Craft" className="w-full h-full object-cover opacity-20" />
-                <div className="absolute inset-0 bg-[#050505]/90"></div>
+                <div className="absolute inset-0 bg-[#050505]/60"></div>
             </div>
 
-            {/* Dynamic Background Effects */}
-            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+            {/* Dynamic Background Effects - Spotlight Blended */}
+            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_70%)]">
+                {/* Prism Effect */}
+                <div className="absolute inset-0 opacity-100">
+                    <Prism
+                        animationType="rotate"
+                        timeScale={0.5}
+                        height={3.5}
+                        baseWidth={5.5}
+                        scale={3.6}
+                        hueShift={0}
+                        colorFrequency={1}
+                        noise={0}
+                        glow={1}
+                    />
+                </div>
                 {/* Moving Gold Orbs */}
                 <motion.div
                     animate={{
                         scale: [1, 1.2, 1],
                         opacity: [0.3, 0.5, 0.3],
-                        x: [0, 100, 0],
-                        y: [0, -50, 0]
+                        x: [0, 50, 0],
+                        y: [0, -20, 0]
                     }}
                     transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#D4AF37]/10 rounded-full blur-[120px]"
+                    className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-[#D4AF37]/10 rounded-full blur-[120px]"
                 />
-                <motion.div
-                    animate={{
-                        scale: [1, 1.5, 1],
-                        opacity: [0.2, 0.4, 0.2],
-                        x: [0, -100, 0],
-                        y: [0, 50, 0]
-                    }}
-                    transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-                    className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-[#D4AF37]/5 rounded-full blur-[150px]"
-                />
-
-                {/* Subtle Grid Pattern */}
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxmaWx0ZXIgaWQ9Im4iPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjUiIG51bSBPY3RhdmVzPSIxIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idHJhbnNwYXJlbnQiLz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjVmNWYwIiBmaWx0ZXI9InVybCgjbikiIG9wYWNpdHk9IjAuNSIvPjwvc3ZnPg==')] opacity-20 brightness-100 contrast-150 mix-blend-soft-light"></div>
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100px_100px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_70%)]"></div>
+                {/* Twinkle Effect */}
+                <div className="absolute inset-0 z-0">
+                    {[...Array(20)].map((_, i) => (
+                        <motion.div
+                            key={i}
+                            className="absolute bg-[#D4AF37] rounded-full blur-[1px]"
+                            initial={{
+                                top: `${Math.random() * 100}%`,
+                                left: `${Math.random() * 100}%`,
+                                width: Math.random() * 2 + 1 + 'px',
+                                height: Math.random() * 2 + 1 + 'px',
+                                opacity: 0
+                            }}
+                            animate={{
+                                opacity: [0, 0.8, 0],
+                                scale: [0.5, 1.2, 0.5]
+                            }}
+                            transition={{
+                                duration: Math.random() * 3 + 2,
+                                repeat: Infinity,
+                                delay: Math.random() * 5,
+                                ease: "easeInOut"
+                            }}
+                        />
+                    ))}
+                </div>
             </div>
 
             <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
+                {/* Content Wrapper */}
+
                 {/* Header */}
-                <div className="text-center mb-20">
+                <div className="text-center mb-20 relative z-10">
                     <motion.h3
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -84,12 +112,12 @@ const ContactSection = ({ t, lang }) => {
                 </div>
 
                 {/* Electric Border Container */}
-                <div className="max-w-3xl mx-auto relative rounded-2xl p-[3px] overflow-hidden">
+                <div className="max-w-3xl mx-auto relative rounded-2xl p-[3px] overflow-hidden z-10">
                     {/* Spinning Gradient (The Electric Border) */}
                     <div className="absolute inset-[-50%] w-[200%] h-[200%] animate-[spin_4s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0deg,transparent_80deg,#D4AF37_120deg,transparent_160deg,transparent_360deg)]"></div>
 
                     {/* Inner Content Card */}
-                    <div className="relative h-full w-full bg-[#0a0a0a] rounded-2xl p-10 md:p-16">
+                    <div className="relative h-full w-full bg-black/60 backdrop-blur-xl rounded-2xl p-10 md:p-16 border border-[#D4AF37]/20">
                         {/* Decorative Corner Glow (Moved inside) */}
                         <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#D4AF37]/10 blur-[100px] rounded-full pointer-events-none"></div>
 
@@ -154,7 +182,7 @@ const ContactSection = ({ t, lang }) => {
                     </div>
                 </div>
             </div>
-        </section>
+        </section >
     );
 };
 
