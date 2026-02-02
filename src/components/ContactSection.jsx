@@ -114,76 +114,74 @@ const ContactSection = ({ t, lang }) => {
                 {/* Electric Border Container */}
                 <div className="max-w-3xl mx-auto relative rounded-2xl p-[3px] overflow-hidden z-10">
                     {/* Electric Border Container - Gradient Removed */}
-                    <div className="max-w-3xl mx-auto relative rounded-2xl p-[3px] overflow-hidden z-10">
 
 
+                    {/* Inner Content Card */}
+                    <div className="relative h-full w-full bg-black/60 backdrop-blur-xl rounded-2xl p-10 md:p-16 border border-[#D4AF37]/20">
+                        {/* Decorative Corner Glow (Moved inside) */}
+                        <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#D4AF37]/10 blur-[100px] rounded-full pointer-events-none"></div>
 
-                        {/* Inner Content Card */}
-                        <div className="relative h-full w-full bg-black/60 backdrop-blur-xl rounded-2xl p-10 md:p-16 border border-[#D4AF37]/20">
-                            {/* Decorative Corner Glow (Moved inside) */}
-                            <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#D4AF37]/10 blur-[100px] rounded-full pointer-events-none"></div>
-
-                            <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    {/* Name */}
-                                    <div className="flex flex-col gap-2">
-                                        <label className="text-[#D4AF37] text-sm uppercase tracking-widest font-bold ml-1">{t?.namePlaceholder}</label>
-                                        <input
-                                            type="text"
-                                            name="name"
-                                            value={formData.name}
-                                            onChange={handleChange}
-                                            placeholder={t?.namePlaceholder}
-                                            required
-                                            className="w-full bg-white/10 border-2 border-[#D4AF37] rounded-lg px-6 py-5 text-xl text-white focus:outline-none focus:bg-white/20 transition-all duration-300 placeholder-white/50"
-                                        />
-                                    </div>
-
-                                    {/* Phone */}
-                                    <div className="flex flex-col gap-2">
-                                        <label className="text-[#D4AF37] text-sm uppercase tracking-widest font-bold ml-1">{t?.phonePlaceholder}</label>
-                                        <input
-                                            type="tel"
-                                            name="phone"
-                                            value={formData.phone}
-                                            onChange={handleChange}
-                                            placeholder={t?.phonePlaceholder}
-                                            required
-                                            className={`w-full bg-white/10 border-2 border-[#D4AF37] rounded-lg px-6 py-5 text-xl text-white focus:outline-none focus:bg-white/20 transition-all duration-300 placeholder-white/50 text-${lang === 'ar' ? 'right' : 'left'}`}
-                                            dir="ltr"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Message */}
+                        <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* Name */}
                                 <div className="flex flex-col gap-2">
-                                    <label className="text-[#D4AF37] text-sm uppercase tracking-widest font-bold ml-1">{t?.messagePlaceholder}</label>
-                                    <textarea
-                                        name="message"
-                                        rows="5"
-                                        value={formData.message}
+                                    <label className="text-[#D4AF37] text-sm uppercase tracking-widest font-bold ml-1">{t?.namePlaceholder}</label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={formData.name}
                                         onChange={handleChange}
-                                        placeholder={t?.messagePlaceholder}
+                                        placeholder={t?.namePlaceholder}
                                         required
-                                        className="w-full bg-white/10 border-2 border-[#D4AF37] rounded-lg px-6 py-5 text-xl text-white focus:outline-none focus:bg-white/20 transition-all duration-300 resize-none placeholder-white/50"
-                                    ></textarea>
+                                        className="w-full bg-white/10 border-2 border-[#D4AF37] rounded-lg px-6 py-5 text-xl text-white focus:outline-none focus:bg-white/20 transition-all duration-300 placeholder-white/50"
+                                    />
                                 </div>
 
-                                {/* Submit Btn */}
-                                <div className="flex justify-center pt-6">
-                                    <motion.button
-                                        whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(212, 175, 55, 0.4)" }}
-                                        whileTap={{ scale: 0.95 }}
-                                        type="submit"
-                                        className="bg-[#D4AF37] text-black px-16 py-5 uppercase tracking-[0.2em] font-black text-sm hover:bg-[#F2E8C9] transition-all duration-300 rounded-full shadow-lg"
-                                    >
-                                        {t?.submit}
-                                    </motion.button>
+                                {/* Phone */}
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[#D4AF37] text-sm uppercase tracking-widest font-bold ml-1">{t?.phonePlaceholder}</label>
+                                    <input
+                                        type="tel"
+                                        name="phone"
+                                        value={formData.phone}
+                                        onChange={handleChange}
+                                        placeholder={t?.phonePlaceholder}
+                                        required
+                                        className={`w-full bg-white/10 border-2 border-[#D4AF37] rounded-lg px-6 py-5 text-xl text-white focus:outline-none focus:bg-white/20 transition-all duration-300 placeholder-white/50 text-${lang === 'ar' ? 'right' : 'left'}`}
+                                        dir="ltr"
+                                    />
                                 </div>
-                            </form>
-                        </div>
+                            </div>
+
+                            {/* Message */}
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[#D4AF37] text-sm uppercase tracking-widest font-bold ml-1">{t?.messagePlaceholder}</label>
+                                <textarea
+                                    name="message"
+                                    rows="5"
+                                    value={formData.message}
+                                    onChange={handleChange}
+                                    placeholder={t?.messagePlaceholder}
+                                    required
+                                    className="w-full bg-white/10 border-2 border-[#D4AF37] rounded-lg px-6 py-5 text-xl text-white focus:outline-none focus:bg-white/20 transition-all duration-300 resize-none placeholder-white/50"
+                                ></textarea>
+                            </div>
+
+                            {/* Submit Btn */}
+                            <div className="flex justify-center pt-6">
+                                <motion.button
+                                    whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(212, 175, 55, 0.4)" }}
+                                    whileTap={{ scale: 0.95 }}
+                                    type="submit"
+                                    className="bg-[#D4AF37] text-black px-16 py-5 uppercase tracking-[0.2em] font-black text-sm hover:bg-[#F2E8C9] transition-all duration-300 rounded-full shadow-lg"
+                                >
+                                    {t?.submit}
+                                </motion.button>
+                            </div>
+                        </form>
                     </div>
                 </div>
+            </div>
         </section >
     );
 };
