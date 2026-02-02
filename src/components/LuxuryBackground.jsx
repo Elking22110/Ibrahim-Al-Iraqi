@@ -23,7 +23,8 @@ const LuxuryBackground = () => {
         window.addEventListener('resize', setSize);
 
         // Particle configuration
-        const particleCount = 85; // Increased density for richness
+        const isMobile = window.innerWidth < 768;
+        const particleCount = isMobile ? 20 : 85; // Drastically reduce on mobile
         const particles = [];
 
         class Particle {

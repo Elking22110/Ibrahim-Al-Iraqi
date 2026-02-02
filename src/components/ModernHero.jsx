@@ -44,6 +44,7 @@ const ModernHero = ({ t, lang }) => {
         <section id="home" ref={ref} className="relative w-full h-screen flex flex-col justify-center items-center overflow-hidden">
             {/* Background Video */}
             <div className="absolute inset-0 z-0">
+                {/* Desktop Video */}
                 <video
                     ref={videoRef}
                     autoPlay
@@ -51,10 +52,18 @@ const ModernHero = ({ t, lang }) => {
                     loop
                     playsInline
                     preload="auto"
-                    className="w-full h-full object-cover scale-105" // Slight scale to avoid edge artifacts
+                    className="hidden md:block w-full h-full object-cover scale-105" // Hidden on mobile
                 >
                     <source src="/the%20new%20Background/freecompress-$RBIU10L.mp4" type="video/mp4" />
                 </video>
+
+                {/* Mobile Fallback Image */}
+                <img
+                    src="/the%20new%20Background/Title_a_luxurious_2k_202601132212.jpeg"
+                    alt="Luxury Background"
+                    className="block md:hidden w-full h-full object-cover" // Visible only on mobile
+                />
+
                 {/* Overlay gradient - Reduced opacity for better video visibility */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-black/10 to-black/20"></div>
 
