@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import ScrollFloat from './ScrollFloat';
-// import Prism from './Prism';
+import Prism from './Prism';
 
 const ContactSection = ({ t, lang }) => {
     const [formData, setFormData] = useState({
@@ -31,8 +31,8 @@ const ContactSection = ({ t, lang }) => {
 
             {/* Dynamic Background Effects - Spotlight Blended */}
             <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_70%)]">
-                {/* Prism Effect - Disabled due to missing dependency */}
-                {/* <div className="absolute inset-0 opacity-100">
+                {/* Prism Effect */}
+                <div className="absolute inset-0 opacity-100">
                     <Prism
                         animationType="rotate"
                         timeScale={0.5}
@@ -44,7 +44,7 @@ const ContactSection = ({ t, lang }) => {
                         noise={0}
                         glow={1}
                     />
-                </div> */}
+                </div>
                 {/* Moving Gold Orbs */}
                 <motion.div
                     animate={{

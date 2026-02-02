@@ -73,22 +73,22 @@ const ModernHero = ({ t, lang }) => {
             {/* Content */}
             <div className={`relative z-10 text-center p-8 ${lang === 'ar' ? 'font-cairo' : ''}`}>
 
-                {/* 1. Subtitle: Elegant Tracking Expansion */}
+                {/* 1. Subtitle: Elegant Fade In (Performance Optimized) */}
                 <motion.h2
-                    initial={{ opacity: 0, letterSpacing: "0em", y: 20 }}
-                    animate={{ opacity: 1, letterSpacing: "0.5em", y: 0 }}
-                    transition={{ duration: 1.5, delay: 1.5, ease: "easeOut" }} // Delayed to 1.5s
-                    className="text-white text-sm md:text-base uppercase mb-6"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 1, delay: 1.5, ease: "easeOut" }}
+                    className="text-white text-sm md:text-base uppercase mb-6 tracking-[0.5em]" // Fixed tracking
                 >
                     {t?.subtitle || "THE NEW COLLECTION"}
                 </motion.h2>
 
-                {/* 2. Main Title: Masked Slide-Up Reveal */}
-                <div className="overflow-hidden mb-8 w-full px-4 py-4 md:py-6"> {/* Added vertical padding for descenders */}
+                {/* 2. Main Title: Soft Fade Up (No Skew/Mask for Mobile Smoothness) */}
+                <div className="mb-8 w-full px-4 py-4 md:py-6 relative z-10">
                     <motion.h1
-                        initial={{ y: "110%", skewY: 5 }}
-                        animate={{ y: "0%", skewY: 0 }}
-                        transition={{ duration: 1.2, delay: 1.8, ease: [0.22, 1, 0.36, 1] }} // Delayed to 1.8s
+                        initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ duration: 1.2, delay: 1.8, ease: "easeOut" }} // Simple EaseOut
                         className={`text-white text-5xl md:text-7xl lg:text-9xl font-bold drop-shadow-2xl ${lang === 'ar' ? 'font-amiri leading-normal' : 'font-serif leading-[0.9]'}`}
                     >
                         {lang === 'ar' ? 'إبراهيم العراقي' : 'IBRAHIM AL-IRAQI'}
