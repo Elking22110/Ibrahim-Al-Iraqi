@@ -57,10 +57,13 @@ const ModernHero = ({ t, lang }) => {
                     <source src="/the%20new%20Background/freecompress-$RBIU10L.mp4" type="video/mp4" />
                 </video>
 
-                {/* Mobile Fallback Image */}
+                {/* Mobile Fallback Image - LCP Optimized */}
                 <img
                     src="/the%20new%20Background/Title_a_luxurious_2k_202601132212.jpeg"
                     alt="Luxury Background"
+                    fetchPriority="high" // Critical for LCP
+                    loading="eager"
+                    decoding="async"
                     className="block md:hidden w-full h-full object-cover" // Visible only on mobile
                 />
 

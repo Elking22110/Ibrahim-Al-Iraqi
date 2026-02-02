@@ -74,6 +74,7 @@ const Loader = ({ onComplete, t, lang }) => {
                         <img
                             src="/the%20new%20Background/logo_hswh7n%20(1).jpg"
                             alt="Logo"
+                            fetchPriority="high"
                             className="block md:hidden w-full h-full object-contain scale-90"
                         />
                     </div>

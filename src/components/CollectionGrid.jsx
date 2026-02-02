@@ -63,6 +63,7 @@ const CollectionGrid = ({ t, lang }) => {
                             <img
                                 src={`/The Gallery/${img}`}
                                 alt={`Featured ${index + 1}`}
+                                loading="lazy" // Defer loading
                                 className="w-full h-full object-cover grayscale-0 md:grayscale md:group-hover:grayscale-0 transition-all duration-700"
                             />
                             <div className="absolute inset-0 bg-transparent md:bg-black/60 md:group-hover:bg-transparent transition-colors duration-500"></div>
