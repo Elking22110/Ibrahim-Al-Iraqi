@@ -78,7 +78,7 @@ const ModernHero = ({ t, lang }) => {
                     <motion.h1
                         initial={{ y: "110%", skewY: 5 }}
                         animate={{ y: "0%", skewY: 0 }}
-                        transition={{ duration: 1.0, delay: 0.2, ease: [0.22, 1, 0.36, 1] }} // Reduced delay for faster LCP
+                        transition={{ duration: 1.2, delay: 0.8, ease: [0.22, 1, 0.36, 1] }} // Custom "Luxury" Bezier
                         className={`text-white text-5xl md:text-7xl lg:text-9xl font-bold drop-shadow-2xl ${lang === 'ar' ? 'font-amiri leading-normal' : 'font-serif leading-[0.9]'}`}
                     >
                         {lang === 'ar' ? 'إبراهيم العراقي' : 'IBRAHIM AL-IRAQI'}
