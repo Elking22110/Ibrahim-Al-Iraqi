@@ -42,8 +42,13 @@ const Footer = ({ t, lang }) => {
                                 Egypt
                             </p>
                         )}
-                        <a href="https://wa.me/201009970416" dir="ltr" className="block hover:text-white transition-colors text-left">
-                            +20 100 997 0416
+                        <a href="tel:+201009970416" dir="ltr" className="flex items-center gap-3 group/phone hover:text-[#D4AF37] transition-all duration-300 w-fit">
+                            <span className="p-2 rounded-full bg-white/5 group-hover/phone:bg-[#D4AF37]/20 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                                </svg>
+                            </span>
+                            <span className="border-b border-transparent group-hover/phone:border-[#D4AF37] text-lg">+20 100 997 0416</span>
                         </a>
                         <p className="text-xs text-gray-600 pt-2">{t?.apptOnly || "By Appointment Only"}</p>
                     </div>
