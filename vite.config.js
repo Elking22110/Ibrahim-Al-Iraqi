@@ -18,7 +18,8 @@ export default defineConfig({
             output: {
                 manualChunks: {
                     'vendor-react': ['react', 'react-dom'],
-                    'vendor-anim': ['framer-motion', 'gsap'],
+                    'vendor-framer': ['framer-motion'],
+                    'vendor-gsap': ['gsap'], // Loaded lazily with Contact/Footer
                 },
             },
         },

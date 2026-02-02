@@ -51,7 +51,13 @@ const ScrollFloat = ({
 
         const scroller = scrollContainerRef && scrollContainerRef.current ? scrollContainerRef.current : window;
 
+        // Use children array if possible to avoid DOM query, but querying char is strictly necessary for split text animation.
+        // Optimization: Batch reads if possible, but GSAP handles this well.
+        // The issue might be the text splitting logic itself running on every render if dependencies change.
+        // Note: 'splitText' is memoized, so re-render only happens on content change.
+
         const charElements = el.querySelectorAll('.char');
+        if (charElements.length === 0) return;
 
         // Kill any existing ScrollTrigger to avoid duplication
         // ScrollTrigger.getAll().forEach(st => st.kill()); 
