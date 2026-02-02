@@ -50,9 +50,10 @@ const ModernHero = ({ t, lang }) => {
                     muted
                     loop
                     playsInline
+                    preload="auto"
                     className="w-full h-full object-cover scale-105" // Slight scale to avoid edge artifacts
                 >
-                    <source src="/the new Background/freecompress-$RBIU10L.mp4" type="video/mp4" />
+                    <source src="/the%20new%20Background/freecompress-$RBIU10L.mp4" type="video/mp4" />
                 </video>
                 {/* Overlay gradient - Reduced opacity for better video visibility */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-black/10 to-black/20"></div>

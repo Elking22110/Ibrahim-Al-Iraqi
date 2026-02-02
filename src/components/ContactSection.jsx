@@ -58,7 +58,7 @@ const ContactSection = ({ t, lang }) => {
                 />
                 {/* Twinkle Effect */}
                 <div className="absolute inset-0 z-0">
-                    {[...Array(20)].map((_, i) => (
+                    {[...Array(window.innerWidth < 768 ? 5 : 20)].map((_, i) => (
                         <motion.div
                             key={i}
                             className="absolute bg-[#D4AF37] rounded-full blur-[1px]"
