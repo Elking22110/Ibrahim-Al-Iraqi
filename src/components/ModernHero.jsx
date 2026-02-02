@@ -77,7 +77,7 @@ const ModernHero = ({ t, lang }) => {
                 <motion.h2
                     initial={{ opacity: 0, letterSpacing: "0em", y: 20 }}
                     animate={{ opacity: 1, letterSpacing: "0.5em", y: 0 }}
-                    transition={{ duration: 1.5, delay: 0.5, ease: "easeOut" }}
+                    transition={{ duration: 1.5, delay: 1.5, ease: "easeOut" }} // Delayed to 1.5s
                     className="text-white text-sm md:text-base uppercase mb-6"
                 >
                     {t?.subtitle || "THE NEW COLLECTION"}
@@ -88,7 +88,7 @@ const ModernHero = ({ t, lang }) => {
                     <motion.h1
                         initial={{ y: "110%", skewY: 5 }}
                         animate={{ y: "0%", skewY: 0 }}
-                        transition={{ duration: 1.2, delay: 0.8, ease: [0.22, 1, 0.36, 1] }} // Custom "Luxury" Bezier
+                        transition={{ duration: 1.2, delay: 1.8, ease: [0.22, 1, 0.36, 1] }} // Delayed to 1.8s
                         className={`text-white text-5xl md:text-7xl lg:text-9xl font-bold drop-shadow-2xl ${lang === 'ar' ? 'font-amiri leading-normal' : 'font-serif leading-[0.9]'}`}
                     >
                         {lang === 'ar' ? 'إبراهيم العراقي' : 'IBRAHIM AL-IRAQI'}
@@ -99,7 +99,7 @@ const ModernHero = ({ t, lang }) => {
                 <motion.p
                     initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
                     animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                    transition={{ duration: 1, delay: 1.2 }}
+                    transition={{ duration: 1, delay: 2.2 }} // Delayed to 2.2s
                     className="text-gray-200 text-lg md:text-xl font-light tracking-wide max-w-xl mx-auto mb-12"
                 >
                     {t?.desc || "Definitive luxury. Meticulously tailored for the modern gentleman."}
@@ -109,7 +109,7 @@ const ModernHero = ({ t, lang }) => {
                 <motion.button
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.8, delay: 1.6, type: "spring", stiffness: 100 }}
+                    transition={{ duration: 0.8, delay: 2.6, type: "spring", stiffness: 100 }} // Delayed to 2.6s
                     whileHover={{ scale: 1.05, backgroundColor: "#D4AF37", color: "#fff" }}
                     whileTap={{ scale: 0.95 }}
                     className="bg-white text-black px-12 py-5 uppercase tracking-[0.2em] text-xs font-bold transition-all shadow-2xl hover:shadow-gold/20"
