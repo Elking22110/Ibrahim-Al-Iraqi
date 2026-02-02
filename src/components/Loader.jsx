@@ -61,11 +61,13 @@ const Loader = ({ onComplete, t, lang }) => {
                 >
                     <div className="w-40 h-40 md:w-56 md:h-56 relative flex items-center justify-center overflow-hidden rounded-xl">
                         {/* Video Layer */}
+                        {/* Video Layer */}
                         <video
                             ref={videoRef}
-                            src="https://res.cloudinary.com/dfxh95yzm/video/upload/v1769971010/intro_ycuk3h.mp4?t=new"
+                            src="/the%20new%20Background/freecompress-intro_ycuk3h.mp4"
                             loop
                             playsInline
+                            preload="auto"
                             className="w-full h-full object-cover shadow-2xl"
                         />
                     </div>
