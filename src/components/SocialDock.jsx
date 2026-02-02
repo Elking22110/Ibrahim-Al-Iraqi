@@ -35,6 +35,7 @@ const SocialDock = ({ lang }) => {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label={social.label} // Added for Accessibility
                     className="pointer-events-auto relative group perspective-1000"
                     initial={{ opacity: 0, x: 100 }}
                     animate={{

@@ -85,6 +85,7 @@ const Navbar = ({ lang, setLang, t }) => {
                 {/* Language Toggle */}
                 <button
                     onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
+                    aria-label={lang === 'en' ? 'Switch to Arabic' : 'Switch to English'} // Added for A11y
                     className="text-xs font-bold text-white/70 hover:text-[#D4AF37] transition-colors uppercase tracking-widest"
                 >
                     {lang === 'en' ? 'AR' : 'EN'}
@@ -95,6 +96,7 @@ const Navbar = ({ lang, setLang, t }) => {
                     href="https://wa.me/201009970416"
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label={t.cta || "Contact Us"} // Added for A11y
                     className={`px-6 py-2 border text-[10px] uppercase tracking-widest font-bold transition-all no-underline ${scrolled ? 'border-white/20 hover:bg-white hover:text-black' : 'border-white text-white hover:bg-white hover:text-black'}`}
                 >
                     {t.cta}
