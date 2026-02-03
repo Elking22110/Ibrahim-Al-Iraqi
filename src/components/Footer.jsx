@@ -69,9 +69,19 @@ const Footer = ({ t, lang }) => {
             </div>
 
             <div className="container mx-auto px-8 md:px-20 mt-20 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-xs text-gray-600">
-                <p>{t?.rights || "© 2025 IBRAHIM AL-IRAQI. All rights reserved."}</p>
+                <p>
+                    {lang === 'ar' ? (
+                        <>
+                            © 2026 جميع الحقوق محفوظة. تم التطوير بواسطة <span className="text-[#D4AF37] font-bold">Team Elking</span>
+                        </>
+                    ) : (
+                        <>
+                            © 2026 All rights reserved. Made by <span className="text-[#D4AF37] font-bold">Team Elking</span>
+                        </>
+                    )}
+                </p>
                 <p className="hidden md:block opacity-50 hover:opacity-100 transition-opacity cursor-default">
-                    Developed by <span className="text-[#D4AF37]">Hassan</span>
+                    Developed by <span className="text-[#D4AF37]">HassanElking</span>
                 </p>
                 <div className="flex space-x-6 mt-4 md:mt-0">
                     <a href="https://www.facebook.com/share/17y9z8kF57/" className="hover:text-white transition-colors">Facebook</a>

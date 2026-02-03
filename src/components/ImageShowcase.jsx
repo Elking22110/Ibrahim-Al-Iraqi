@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const ImageShowcase = ({ lang }) => {
+const ImageShowcase = ({ t, lang }) => {
     return (
-        <section className="w-full py-24 px-8 md:px-20">
+        <section className={`w-full py-24 px-8 md:px-20 ${lang === 'ar' ? 'font-cairo' : ''}`}>
             {/* Intro Text */}
             <motion.div
                 initial={{ opacity: 0, y: 30 }}
@@ -13,13 +13,17 @@ const ImageShowcase = ({ lang }) => {
                 className="flex flex-col md:flex-row justify-between items-end mb-20 border-b border-gray-800 pb-10"
             >
                 <div className="max-w-md">
-                    <h3 className="text-4xl font-serif mb-4 text-white">Uncompromising Detail</h3>
+                    <h3 className="text-4xl font-serif mb-4 text-white">
+                        {t?.title || "Uncompromising Detail"}
+                    </h3>
                     <p className="text-gray-400 leading-relaxed">
-                        Every stitch is a statement. Our fabrics are sourced from the finest mills in Biella, Italy, ensuring a drape that is both commanding and comfortable.
+                        {t?.desc || "Every stitch is a statement. Our fabrics are sourced from the finest mills in Biella, Italy, ensuring a drape that is both commanding and comfortable."}
                     </p>
                 </div>
                 <div className="mt-8 md:mt-0">
-                    <span className="block text-xs uppercase tracking-widest text-[#D4AF37]">Est. 2024</span>
+                    <span className="block text-xs uppercase tracking-widest text-[#D4AF37]">
+                        {t?.est || "Est. 2024"}
+                    </span>
                 </div>
             </motion.div>
 
@@ -44,8 +48,12 @@ const ImageShowcase = ({ lang }) => {
                     </div>
                     <div className="flex justify-between items-center">
                         <div>
-                            <h4 className="text-xl font-bold mb-1 text-white">Super 150s Wool</h4>
-                            <p className="text-xs text-gray-500 uppercase tracking-wider">Texture / Close-up</p>
+                            <h4 className="text-xl font-bold mb-1 text-white">
+                                {t?.item1Title || "Super 150s Wool"}
+                            </h4>
+                            <p className="text-xs text-gray-500 uppercase tracking-wider">
+                                {t?.item1Desc || "Texture / Close-up"}
+                            </p>
                         </div>
                         <span className="text-2xl font-serif text-gray-600 group-hover:text-white transition-colors">01</span>
                     </div>
@@ -69,8 +77,12 @@ const ImageShowcase = ({ lang }) => {
                     </div>
                     <div className="flex justify-between items-center">
                         <div>
-                            <h4 className="text-xl font-bold mb-1 text-white">Modern Silhouette</h4>
-                            <p className="text-xs text-gray-500 uppercase tracking-wider">Fit / Style</p>
+                            <h4 className="text-xl font-bold mb-1 text-white">
+                                {t?.item2Title || "Modern Silhouette"}
+                            </h4>
+                            <p className="text-xs text-gray-500 uppercase tracking-wider">
+                                {t?.item2Desc || "Fit / Style"}
+                            </p>
                         </div>
                         <span className="text-2xl font-serif text-gray-600 group-hover:text-white transition-colors">02</span>
                     </div>
