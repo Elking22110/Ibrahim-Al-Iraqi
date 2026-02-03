@@ -30,9 +30,9 @@ export const content = {
             founderRole: "Master Tailor & Founder"
         },
         collection: {
-            title: "The Gallery",
-            subtitle: "A visual journey through our finest bespoke creations and timeless masterpieces.",
-            viewCampaign: "View Campaign",
+            title: "Private Selection",
+            subtitle: "This is merely a glimpse of our craft. To view the full bespoke archive and exclusive fabrics, please contact us directly.",
+            viewCampaign: "Request Full Catalogue",
             readyToWear: "Ready to Wear",
             products: [
                 { id: 1, name: "The Midnight Tuxedo", price: "$2,800", img: "/hero-suit.png" },
@@ -52,8 +52,8 @@ export const content = {
             rights: "© 2025 IBRAHIM AL-IRAQI. All rights reserved."
         },
         contact: {
-            title: "Contact Us",
-            subtitle: "Start Your Journey",
+            title: "Claim Your Masterpiece",
+            subtitle: "Don't settle for off-the-rack. You deserve a suit built for your legacy. Contact us now to reserve your consultation.",
             namePlaceholder: "Your Name",
             phonePlaceholder: "Phone Number",
             messagePlaceholder: "Your Message",
@@ -97,9 +97,9 @@ export const content = {
             founderRole: "مؤسس ومصمم"
         },
         collection: {
-            title: "ألبوم الإبداع",
-            subtitle: "جولة بصرية بين أرقى تصاميمنا والقطع الفريدة التي صنعت خصيصاً لعملائنا.",
-            viewCampaign: "شاهد المجموعة",
+            title: "مختارات خاصة",
+            subtitle: "هذه الصور ليست سوى لمحة بسيطة من إبداعاتنا. لرؤية الكتالوج الكامل والمجموعات الحصرية، تواصل معنا الآن.",
+            viewCampaign: "اطلب الكتالوج الكامل",
             readyToWear: "جاهزة للارتداء",
             products: [
                 { id: 1, name: "بدلة السهرة السوداء", price: "٢,٨٠٠ دولار", img: "/hero-suit.png" },
@@ -119,8 +119,8 @@ export const content = {
             rights: "© ٢٠٢٥ إبراهيم العراقي. جميع الحقوق محفوظة."
         },
         contact: {
-            title: "تواصل معنا",
-            subtitle: "ابدأ رحلة التميز",
+            title: "احجز تميزك",
+            subtitle: "لا تكتفِ بالجاهز. أنت تستحق بدلة صُنعت لتروي قصتك. تواصل معنا الآن لحجز استشارتك.",
             namePlaceholder: "الاسم",
             phonePlaceholder: "رقم الهاتف",
             messagePlaceholder: "رسالتك",

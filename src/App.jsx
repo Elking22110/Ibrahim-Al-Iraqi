@@ -18,7 +18,7 @@ const ContactSection = React.lazy(() => import('./components/ContactSection'));
 
 function App() {
     const [isLoading, setIsLoading] = useState(true);
-    const [lang, setLang] = useState('en');
+    const [lang, setLang] = useState('ar');
     const t = content[lang];
 
     useEffect(() => {
