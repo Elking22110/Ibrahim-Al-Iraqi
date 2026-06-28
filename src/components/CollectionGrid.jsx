@@ -3,47 +3,64 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ScrollFloat from './ScrollFloat';
 
 // Helper: get image src supporting both Cloudinary objects and local paths
-const getImgSrc = (albumName, img) => {
+const getImgSrc = (img) => {
     if (!img) return '';
     if (typeof img === 'object' && img.url) return img.url;
-    return `/The Gallery/${encodeURIComponent(albumName)}/${encodeURIComponent(img)}`;
-};
-
-// Helper: get album cover image object
-const getAlbumCover = (album) => {
-    if (!album?.images?.length) return null;
-    const cover = album.images.find(img => {
-        const name = typeof img === 'object' ? img.filename : img;
-        return name && name.toLowerCase().startsWith('cover');
-    });
-    return cover || album.images[0];
+    // img is a string like "Collection/IMG_0199.jpeg"
+    return `/The Gallery/${img}`;
 };
 
 const CollectionGrid = ({ t, lang, albums = [] }) => {
-    const [activeAlbumName, setActiveAlbumName] = useState(null);
+    const allLabel = lang === 'ar' ? 'الكل' : 'All';
+    const [selectedCategory, setSelectedCategory] = useState('All');
     const [isExpanded, setIsExpanded] = useState(false);
 
-    // Initialize active album
+    // Reset expansion when category changes
     useEffect(() => {
-        if (albums.length > 0 && !activeAlbumName) {
-            setActiveAlbumName(albums[0].name);
-        }
-    }, [albums, activeAlbumName]);
+        setIsExpanded(false);
+    }, [selectedCategory]);
 
-    // Active album data
-    const activeAlbum = albums.find(a => a.name === activeAlbumName) || albums[0];
-    const displayAlbums = albums.slice(0, 4);
+    // Format all images with their folder prefix
+    // e.g. { url, filename, path: "Collection/filename" }
+    const getFormattedImages = () => {
+        return albums.flatMap(album =>
+            album.images.map(img => {
+                if (typeof img === 'object') {
+                    return {
+                        ...img,
+                        albumName: album.name,
+                        path: img.url // Use full Cloudinary URL directly
+                    };
+                }
+                return {
+                    filename: img,
+                    albumName: album.name,
+                    path: `${encodeURIComponent(album.name)}/${encodeURIComponent(img)}`
+                };
+            })
+        );
+    };
+
+    const allImages = getFormattedImages();
+
+    // Filter images based on selected category
+    const filteredImages = selectedCategory === 'All'
+        ? allImages
+        : allImages.filter(img => img.albumName === selectedCategory);
+
+    const featuredImages = filteredImages.slice(0, 4);
+    const hiddenImages = filteredImages.slice(4);
 
     return (
         <section id="collection" className={`w-full py-32 bg-[#0A0A0A] relative overflow-hidden ${lang === 'ar' ? 'font-cairo' : ''}`}>
             
-            {/* Soft decorative background glow */}
+            {/* Background Glow */}
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#D4AF37]/2 rounded-full blur-[150px] pointer-events-none"></div>
 
             <div className="container mx-auto px-8 md:px-20 relative z-10">
 
                 {/* Header */}
-                <div className="text-center mb-20">
+                <div className="text-center mb-16">
                     <motion.h3
                         initial={{ opacity: 0, y: 15 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -68,115 +85,112 @@ const CollectionGrid = ({ t, lang, albums = [] }) => {
                     </p>
                 </div>
 
-                {/* Album Category Boxes (Top 4 Albums) */}
-                {displayAlbums.length > 0 && (
-                    <div className="flex flex-col lg:flex-row gap-6 h-auto lg:h-[500px] w-full mb-16">
-                        {displayAlbums.map((album, index) => {
-                            const coverImg = getAlbumCover(album);
-                            const isActive = activeAlbumName === album.name;
-
-                            return (
-                                <motion.div
-                                    key={index}
-                                    onClick={() => {
-                                        setActiveAlbumName(album.name);
-                                        setIsExpanded(true); // Auto-expand to show photos when clicked
-                                    }}
-                                    className={`relative flex-1 group overflow-hidden rounded-2xl cursor-pointer border transition-all duration-700 ${
-                                        isActive 
-                                            ? 'border-[#D4AF37] lg:flex-[2.5]' 
-                                            : 'border-white/10 hover:border-[#D4AF37]/50'
-                                    }`}
-                                    layout
-                                    transition={{ duration: 0.8, ease: [0.25, 1, 0.5, 1] }}
-                                >
-                                    {/* Album Cover Background */}
-                                    {coverImg && (
-                                        <img
-                                            src={getImgSrc(album.name, coverImg)}
-                                            alt={album.name}
-                                            loading="lazy"
-                                            className="w-full h-full object-cover transition-transform duration-[1200ms] group-hover:scale-105"
-                                        />
-                                    )}
-
-                                    {/* Dark Gradient Overlay */}
-                                    <div className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-500 ${
-                                        isActive ? 'opacity-80' : 'opacity-60 group-hover:opacity-80'
-                                    }`}></div>
-
-                                    {/* Album Title Text */}
-                                    <div className="absolute inset-0 flex flex-col justify-end p-8 z-10">
-                                        <span className="text-[#D4AF37] text-[10px] tracking-[0.3em] font-bold uppercase mb-2">
-                                            {album.images.length} {lang === 'ar' ? 'صورة' : 'PHOTOS'}
-                                        </span>
-                                        <h4 className="text-white text-2xl tracking-[0.1em] font-serif uppercase mb-2 group-hover:text-[#D4AF37] transition-colors duration-300">
-                                            {album.name}
-                                        </h4>
-                                        <div className={`h-[1px] bg-[#D4AF37] transition-all duration-500 origin-left ${
-                                            isActive ? 'w-24' : 'w-0 group-hover:w-16'
-                                        }`}></div>
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
+                {/* Category Selection Tabs */}
+                {albums.length > 1 && (
+                    <div className="flex flex-wrap justify-center gap-3 mb-12 relative z-10">
+                        <button
+                            onClick={() => setSelectedCategory('All')}
+                            className={`px-6 py-2 rounded-full border text-xs uppercase tracking-widest font-bold transition-all duration-300 ${
+                                selectedCategory === 'All'
+                                    ? 'bg-[#D4AF37] border-[#D4AF37] text-black'
+                                    : 'border-white/10 text-gray-400 hover:text-white hover:border-white/30'
+                            }`}
+                        >
+                            {allLabel}
+                        </button>
+                        {albums.map((album, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => setSelectedCategory(album.name)}
+                                className={`px-6 py-2 rounded-full border text-xs uppercase tracking-widest font-bold transition-all duration-300 ${
+                                    selectedCategory === album.name
+                                        ? 'bg-[#D4AF37] border-[#D4AF37] text-black'
+                                        : 'border-white/10 text-gray-400 hover:text-white hover:border-white/30'
+                                }`}
+                            >
+                                {album.name}
+                            </button>
+                        ))}
                     </div>
                 )}
 
-                {/* View/Explore Selected Album Button */}
-                {activeAlbum && (
+                {/* 4 Accordion Images Grid (Restored Shape and Animation) */}
+                {featuredImages.length > 0 && (
+                    <div className="flex flex-col lg:flex-row gap-4 h-auto min-h-screen lg:min-h-0 lg:h-[600px] w-full mb-12">
+                        {featuredImages.map((img, index) => (
+                            <motion.div
+                                key={index}
+                                className="relative flex-1 group overflow-hidden rounded-sm cursor-pointer border border-white/5"
+                                layout
+                                whileHover={featuredImages.length > 1 ? { flex: 3 } : {}}
+                                transition={{ duration: 1.2, ease: "easeInOut" }}
+                            >
+                                <img
+                                    src={getImgSrc(img.path)}
+                                    alt={`Featured ${index + 1}`}
+                                    loading="lazy"
+                                    className="w-full h-full object-cover grayscale-0 md:grayscale md:group-hover:grayscale-0 transition-all duration-700"
+                                />
+                                <div className="absolute inset-0 bg-transparent md:bg-black/60 md:group-hover:bg-transparent transition-colors duration-500 pointer-events-none"></div>
+
+                                {/* View Label Overlay */}
+                                <div className="absolute bottom-0 left-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-200">
+                                    <span className="text-[#D4AF37] text-xs tracking-[0.3em] font-bold uppercase">
+                                        {lang === 'ar' ? 'عرض' : 'View'}
+                                    </span>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Expand Grid Button */}
+                {hiddenImages.length > 0 && (
                     <div className="flex justify-center mb-12">
                         <motion.button
                             layout
                             onClick={() => setIsExpanded(!isExpanded)}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            className="px-8 py-3.5 border border-[#D4AF37] text-[#D4AF37] uppercase tracking-widest text-xs font-bold hover:bg-[#D4AF37] hover:text-black transition-colors duration-300 rounded-full"
+                            className="px-8 py-3 border border-[#D4AF37] text-[#D4AF37] uppercase tracking-widest text-sm hover:bg-[#D4AF37] hover:text-black transition-colors duration-300"
                         >
                             {isExpanded
-                                ? (lang === 'ar' ? `إخفاء صور ${activeAlbumName}` : `Hide ${activeAlbumName} Photos`)
-                                : (lang === 'ar' ? `استعراض صور قسم ${activeAlbumName}` : `Explore ${activeAlbumName} Photos`)
+                                ? (lang === 'ar' ? 'إخفاء الصور' : 'View Less')
+                                : (lang === 'ar' ? 'رؤية المعرض كامل' : 'View Full Collection')
                             }
                         </motion.button>
                     </div>
                 )}
 
-                {/* Selected Album Images Grid */}
+                {/* Expanded Grid */}
                 <AnimatePresence>
-                    {isExpanded && activeAlbum && (
+                    {isExpanded && hiddenImages.length > 0 && (
                         <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.8, ease: [0.25, 1, 0.5, 1] }}
+                            transition={{ duration: 0.8, ease: "easeInOut" }}
                             className="overflow-hidden"
                         >
-                            <div className="columns-1 md:columns-3 gap-6 space-y-6 pb-20">
-                                {activeAlbum.images.map((img, index) => {
-                                    // Don't show the cover in the sub-gallery to prevent repetition, unless it's the only image
-                                    const name = typeof img === 'object' ? img.filename : img;
-                                    const isCover = name && name.toLowerCase().startsWith('cover');
-                                    if (isCover && activeAlbum.images.length > 1) return null;
-
-                                    return (
-                                        <motion.div
-                                            key={index}
-                                            initial={{ opacity: 0, y: 30 }}
-                                            whileInView={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.6, delay: Math.min(index * 0.05, 0.3) }}
-                                            viewport={{ once: true }}
-                                            className="break-inside-avoid relative group overflow-hidden rounded-xl border border-white/5 bg-zinc-900/20"
-                                        >
-                                            <img
-                                                src={getImgSrc(activeAlbum.name, img)}
-                                                alt={`${activeAlbum.name} ${index + 1}`}
-                                                className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700 cursor-zoom-in"
-                                                loading="lazy"
-                                            />
-                                            <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500 pointer-events-none"></div>
-                                        </motion.div>
-                                    );
-                                })}
+                            <div className="columns-1 md:columns-3 gap-4 space-y-4 pb-20">
+                                {hiddenImages.map((img, index) => (
+                                    <motion.div
+                                        key={index}
+                                        initial={{ opacity: 0, y: 30 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.5, delay: Math.min(index * 0.05, 0.3) }}
+                                        viewport={{ once: true }}
+                                        className="break-inside-avoid relative group overflow-hidden rounded-sm"
+                                    >
+                                        <img
+                                            src={getImgSrc(img.path)}
+                                            alt={`Gallery ${index + 5}`}
+                                            className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700"
+                                            loading="lazy"
+                                        />
+                                        <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500 pointer-events-none"></div>
+                                    </motion.div>
+                                ))}
                             </div>
                         </motion.div>
                     )}
