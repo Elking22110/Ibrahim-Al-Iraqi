@@ -196,6 +196,48 @@ export default defineConfig({
                             }
                         });
 
+                    } else if (req.url === '/api/set-cover' && req.method === 'POST') {
+                        let body = '';
+                        req.on('data', chunk => { body += chunk; });
+                        req.on('end', () => {
+                            try {
+                                const { album, filename } = JSON.parse(body);
+                                if (!album || !filename) throw new Error('Album and filename are required');
+
+                                const albumDir = path.resolve(galleryDir, album);
+                                if (!fs.existsSync(albumDir)) throw new Error('Album directory does not exist');
+
+                                // 1. Find existing cover file in local directory and rename it to a timestamped name
+                                const files = fs.readdirSync(albumDir);
+                                files.forEach(file => {
+                                    const baseName = path.basename(file, path.extname(file));
+                                    if (baseName === 'cover') {
+                                        const ext = path.extname(file);
+                                        const oldPath = path.resolve(albumDir, file);
+                                        const newPath = path.resolve(albumDir, `img_${Date.now()}${ext}`);
+                                        fs.renameSync(oldPath, newPath);
+                                    }
+                                });
+
+                                // 2. Rename the target file to 'cover.<ext>'
+                                const ext = path.extname(filename);
+                                const sourcePath = path.resolve(albumDir, filename);
+                                const targetPath = path.resolve(albumDir, `cover${ext}`);
+                                
+                                if (fs.existsSync(sourcePath)) {
+                                    fs.renameSync(sourcePath, targetPath);
+                                }
+
+                                regenerateGalleryConfig(__dirname);
+
+                                res.setHeader('Content-Type', 'application/json');
+                                res.end(JSON.stringify({ success: true }));
+                            } catch (err) {
+                                res.statusCode = 500;
+                                res.end(JSON.stringify({ error: err.message }));
+                            }
+                        });
+
                     } else if (req.url === '/api/auth' && req.method === 'POST') {
                         let body = '';
                         req.on('data', chunk => { body += chunk; });

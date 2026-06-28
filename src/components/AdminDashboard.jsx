@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaTrash, FaUpload, FaArrowLeft, FaSpinner, FaFolderPlus, FaEdit, FaFolder, FaImages, FaLock, FaEye, FaEyeSlash, FaCloudUploadAlt } from 'react-icons/fa';
+import { FaTrash, FaUpload, FaArrowLeft, FaSpinner, FaFolderPlus, FaEdit, FaFolder, FaImages, FaLock, FaEye, FaEyeSlash, FaCloudUploadAlt, FaStar, FaRegStar } from 'react-icons/fa';
 import { galleryAlbums as staticAlbums } from '../galleryConfig';
 
 const STORAGE_KEY = 'admin_auth_pw';
@@ -28,6 +28,33 @@ const AdminDashboard = ({ lang, setLang }) => {
     const authHeaders = {
         'Content-Type': 'application/json',
         'x-admin-password': authPw,
+    };
+
+    const isCoverImage = (img) => {
+        const name = getImgName(img);
+        return name && name.toLowerCase().startsWith('cover');
+    };
+
+    const handleSetCover = async (img) => {
+        const filename = getImgName(img);
+        try {
+            setLoading(true);
+            const res = await fetch('/api/set-cover', {
+                method: 'POST',
+                headers: authHeaders,
+                body: JSON.stringify({ album: activeAlbumName, filename })
+            });
+            const result = await res.json();
+            if (result.success) {
+                setStatusMessage(lang === 'ar' ? '⭐ تم تعيين الصورة كغلاف للقسم بنجاح!' : '⭐ Album cover set successfully!');
+                await fetchGallery();
+            } else throw new Error(result.error);
+        } catch (err) {
+            console.error(err);
+            setStatusMessage(lang === 'ar' ? '❌ فشل تعيين الغلاف' : '❌ Failed to set cover');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleMigrateLocalImages = async () => {
@@ -575,6 +602,14 @@ const AdminDashboard = ({ lang, setLang }) => {
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 max-h-[650px] overflow-y-auto pr-2">
                                         {activeAlbum.images.map((img, idx) => (
                                             <div key={idx} className="relative group rounded-xl border border-white/10 overflow-hidden bg-black/40">
+                                                {/* Cover Badge */}
+                                                {isCoverImage(img) && (
+                                                    <div className="absolute top-2.5 right-2.5 bg-[#D4AF37] text-black text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded shadow-lg z-20 flex items-center gap-1">
+                                                        <FaStar className="text-[9px]" />
+                                                        {lang === 'ar' ? 'الغلاف' : 'Cover'}
+                                                    </div>
+                                                )}
+
                                                 <div className="aspect-[3/4] overflow-hidden bg-zinc-900 flex items-center justify-center">
                                                     <img
                                                         src={getImgSrc(img)}
@@ -587,11 +622,21 @@ const AdminDashboard = ({ lang, setLang }) => {
                                                     <p className="text-[10px] text-gray-400 break-all line-clamp-2 uppercase tracking-wide">
                                                         {getImgName(img)}
                                                     </p>
-                                                    <button onClick={() => handleDeleteImage(img)}
-                                                        className="w-full py-2 bg-red-600/90 hover:bg-red-700 text-white rounded-lg flex items-center justify-center gap-2 text-xs font-bold transition-colors">
-                                                        <FaTrash />
-                                                        {lang === 'ar' ? 'حذف الصورة' : 'Delete'}
-                                                    </button>
+                                                    
+                                                    <div className="space-y-2 w-full">
+                                                        {!isCoverImage(img) && (
+                                                            <button onClick={() => handleSetCover(img)}
+                                                                className="w-full py-2 bg-white/5 hover:bg-[#D4AF37] text-white hover:text-black border border-white/10 hover:border-[#D4AF37] rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold transition-all duration-300">
+                                                                <FaRegStar />
+                                                                {lang === 'ar' ? 'تعيين كغلاف' : 'Set as Cover'}
+                                                            </button>
+                                                        )}
+                                                        <button onClick={() => handleDeleteImage(img)}
+                                                            className="w-full py-2 bg-red-600/90 hover:bg-red-700 text-white rounded-lg flex items-center justify-center gap-2 text-xs font-bold transition-colors">
+                                                            <FaTrash />
+                                                            {lang === 'ar' ? 'حذف الصورة' : 'Delete'}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                                 <div className="absolute bottom-0 left-0 w-full p-2 bg-black/65 backdrop-blur-sm text-[9px] text-gray-400 truncate text-center border-t border-white/5 pointer-events-none group-hover:opacity-0 transition-opacity">
                                                     {getImgName(img)}
