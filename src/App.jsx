@@ -37,7 +37,7 @@ function App() {
 
     // Fetch gallery albums from API (works both locally via Vite middleware and on Vercel)
     useEffect(() => {
-        fetch('/api/gallery')
+        fetch(`/api/gallery?t=${Date.now()}`)
             .then(r => r.json())
             .then(data => {
                 if (data.albums && data.albums.length > 0) {

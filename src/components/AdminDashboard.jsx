@@ -158,7 +158,7 @@ const AdminDashboard = ({ lang, setLang }) => {
     const fetchGallery = async () => {
         try {
             setLoading(true);
-            const res = await fetch('/api/gallery');
+            const res = await fetch(`/api/gallery?t=${Date.now()}`);
             const data = await res.json();
             if (data.albums) setAlbums(data.albums);
         } catch (error) {
