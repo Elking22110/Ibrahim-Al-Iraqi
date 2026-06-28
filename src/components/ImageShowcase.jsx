@@ -132,7 +132,7 @@ const ImageShowcase = ({ t, lang }) => {
                     <div ref={img1ContainerRef} className="overflow-hidden mb-6 relative h-[600px] rounded-sm bg-[#111]">
                         <img
                             ref={img1Ref}
-                            src="https://res.cloudinary.com/dfxh95yzm/image/upload/f_auto,q_auto,w_800/v1769970967/fabric-detail_suwutq.jpg"
+                            src="/images/luxury_fabric.png"
                             alt="Fabric Detail"
                             className="w-full h-full object-cover"
                         />
@@ -156,7 +156,7 @@ const ImageShowcase = ({ t, lang }) => {
                     <div ref={img2ContainerRef} className="overflow-hidden mb-6 relative h-[600px] rounded-sm bg-[#111]">
                         <img
                             ref={img2Ref}
-                            src="https://res.cloudinary.com/dfxh95yzm/image/upload/f_auto,q_auto,w_800/v1769970978/man-posing_mdlflr.jpg"
+                            src="/images/tailor_craft.png"
                             alt="Man Posing"
                             className="w-full h-full object-cover"
                         />

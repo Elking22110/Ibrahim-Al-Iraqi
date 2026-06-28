@@ -69,10 +69,10 @@ export const content = {
             title: "Uncompromising Detail",
             desc: "Every stitch is a statement. Our fabrics are sourced from the finest mills in Biella, Italy, ensuring a drape that is both commanding and comfortable.",
             est: "Est. 2024",
-            item1Title: "Super 150s Wool",
-            item1Desc: "Texture / Close-up",
-            item2Title: "Modern Silhouette",
-            item2Desc: "Fit / Style"
+            item1Title: "Premium Italian Cashmere",
+            item1Desc: "Fine weave & gold pinstripes",
+            item2Title: "Master Atelier Craft",
+            item2Desc: "Precision hand-cutting & stitching"
         }
     },
     ar: {
@@ -145,10 +145,10 @@ export const content = {
             title: "دقة لا تقبل المساومة",
             desc: "كل غرزة تعبر عن شخصيتك. نستورد أقمشتنا من أرقى المصانع في بييلا، إيطاليا، لنضمن لك انسيابية تجمع بين الهيبة والراحة.",
             est: "تأسس ٢٠٢٤",
-            item1Title: "صوف سوبر ١٥٠ الفاخر",
-            item1Desc: "الملمس / عن قرب",
-            item2Title: "قصة عصرية",
-            item2Desc: "التناسب / الأسلوب"
+            item1Title: "أقمشة صوف كشمير الإيطالية",
+            item1Desc: "ملمس ناعم وخيوط ذهبية دقيقة",
+            item2Title: "خياطة يدوية احترافية",
+            item2Desc: "دقة متناهية في كل غرزة وتفصيل"
         }
     }
 };
