@@ -1,16 +1,17 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ScrollFloat from './ScrollFloat';
-
-const images = [
-    "IMG_0199.JPG.jpeg", "IMG_0201.JPG.jpeg", "IMG_0205.JPG.jpeg", "IMG_0207.JPG.jpeg",
-    "IMG_0233.JPG.jpeg", "IMG_0261.JPG.jpeg", "IMG_0274.JPG.jpeg", "IMG_0324.JPG.jpeg",
-    "IMG_0339.JPG.jpeg", "IMG_0347.JPG.jpeg", "IMG_0360.JPG.jpeg", "IMG_0362.JPG.jpeg",
-    "IMG_0368.JPG.jpeg", "IMG_0369.JPG.jpeg", "IMG_0382.JPG.jpeg", "IMG_0384.JPG.jpeg",
-    "IMG_0394.JPG.jpeg", "IMG_0395.JPG.jpeg", "IMG_0397.JPG.jpeg", "IMG_0399.JPG.jpeg"
-];
+import { galleryAlbums } from '../galleryConfig';
 
 const GallerySection = ({ t, lang }) => {
+    const [selectedCategory, setSelectedCategory] = useState('All');
+    
+    const allLabel = lang === 'ar' ? 'الكل' : 'All';
+
+    const filteredImages = selectedCategory === 'All'
+        ? galleryAlbums.flatMap(album => album.images.map(img => ({ albumName: album.name, filename: img })))
+        : (galleryAlbums.find(album => album.name === selectedCategory)?.images.map(img => ({ albumName: selectedCategory, filename: img })) || []);
+
     return (
         <section id="gallery" className={`w-full py-24 bg-[#0a0a0a] relative overflow-hidden ${lang === 'ar' ? 'font-cairo' : ''}`}>
             {/* Background Glow */}
@@ -21,7 +22,7 @@ const GallerySection = ({ t, lang }) => {
 
             <div className="container mx-auto px-4 md:px-8 relative z-10">
                 {/* Header */}
-                <div className="text-center mb-20">
+                <div className="text-center mb-12">
                     <motion.h3
                         initial={{ opacity: 0, y: 15 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -43,33 +44,66 @@ const GallerySection = ({ t, lang }) => {
                     </ScrollFloat>
                 </div>
 
-                {/* Masonry Grid */}
-                <div className="columns-1 md:columns-3 gap-4 space-y-4">
-                    {images.map((img, index) => (
-                        <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: 50 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: index % 3 * 0.1 }} // Stagger based on column
-                            viewport={{ once: true, margin: "-50px" }}
-                            className="break-inside-avoid relative group overflow-hidden rounded-sm cursor-pointer"
+                {/* Category Selector Tabs */}
+                <div className="flex flex-wrap justify-center gap-4 mb-16 relative z-10">
+                    <button
+                        onClick={() => setSelectedCategory('All')}
+                        className={`px-6 py-2 rounded-full border text-xs uppercase tracking-widest font-bold transition-all duration-300 ${
+                            selectedCategory === 'All'
+                                ? 'bg-[#D4AF37] border-[#D4AF37] text-black'
+                                : 'border-white/10 text-gray-400 hover:text-white hover:border-white/30'
+                        }`}
+                    >
+                        {allLabel}
+                    </button>
+                    {galleryAlbums.map((album, idx) => (
+                        <button
+                            key={idx}
+                            onClick={() => setSelectedCategory(album.name)}
+                            className={`px-6 py-2 rounded-full border text-xs uppercase tracking-widest font-bold transition-all duration-300 ${
+                                selectedCategory === album.name
+                                    ? 'bg-[#D4AF37] border-[#D4AF37] text-black'
+                                    : 'border-white/10 text-gray-400 hover:text-white hover:border-white/30'
+                            }`}
                         >
-                            <div className="relative overflow-hidden w-full">
-                                <img
-                                    src={`/The Gallery/${img}`}
-                                    alt={`Gallery Image ${index + 1}`}
-                                    className="w-full h-auto object-cover transform transition-transform duration-700 group-hover:scale-105"
-                                    loading="lazy"
-                                />
-                                {/* Overlay */}
-                                <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500"></div>
-
-                                {/* Border Glow on Hover */}
-                                <div className="absolute inset-0 border border-transparent group-hover:border-[#D4AF37]/30 transition-colors duration-500 pointer-events-none"></div>
-                            </div>
-                        </motion.div>
+                            {album.name}
+                        </button>
                     ))}
                 </div>
+
+                {/* Masonry Grid */}
+                <motion.div 
+                    layout
+                    className="columns-1 md:columns-3 gap-4 space-y-4"
+                >
+                    <AnimatePresence mode="popLayout">
+                        {filteredImages.map((img, index) => (
+                            <motion.div
+                                key={`${img.albumName}-${img.filename}`}
+                                layout
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                transition={{ duration: 0.5 }}
+                                className="break-inside-avoid relative group overflow-hidden rounded-sm cursor-pointer"
+                            >
+                                <div className="relative overflow-hidden w-full">
+                                    <img
+                                        src={`/The Gallery/${encodeURIComponent(img.albumName)}/${encodeURIComponent(img.filename)}`}
+                                        alt={`Gallery Image ${index + 1}`}
+                                        className="w-full h-auto object-cover transform transition-all duration-700 group-hover:scale-105"
+                                        loading="lazy"
+                                    />
+                                    {/* Overlay */}
+                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500"></div>
+
+                                    {/* Border Glow on Hover */}
+                                    <div className="absolute inset-0 border border-transparent group-hover:border-[#D4AF37]/30 transition-colors duration-500 pointer-events-none"></div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                </motion.div>
             </div>
         </section>
     );

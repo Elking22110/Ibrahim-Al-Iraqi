@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import SocialDock from './components/SocialDock';
 import Loader from './components/Loader';
 import LuxuryBackground from './components/LuxuryBackground';
+import AdminDashboard from './components/AdminDashboard';
 import { content } from './content';
 
 // Lazy Load Section Components for Performance
@@ -19,7 +20,16 @@ const ContactSection = React.lazy(() => import('./components/ContactSection'));
 function App() {
     const [isLoading, setIsLoading] = useState(true);
     const [lang, setLang] = useState('ar');
+    const [currentPath, setCurrentPath] = useState(window.location.pathname);
     const t = content[lang];
+
+    useEffect(() => {
+        const handleLocationChange = () => {
+            setCurrentPath(window.location.pathname);
+        };
+        window.addEventListener('popstate', handleLocationChange);
+        return () => window.removeEventListener('popstate', handleLocationChange);
+    }, []);
 
     useEffect(() => {
         // Handle Direction and Fonts
@@ -44,6 +54,10 @@ function App() {
         }, 3200);
         return () => clearTimeout(timer);
     }, []);
+
+    if (currentPath === '/admin') {
+        return <AdminDashboard lang={lang} setLang={setLang} />;
+    }
 
     return (
         <LazyMotion features={domMax}>

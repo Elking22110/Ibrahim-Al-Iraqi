@@ -1,17 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ScrollFloat from './ScrollFloat';
+import { galleryAlbums } from '../galleryConfig';
 
-const allImages = [
-    // Featured (User Selected)
-    "IMG_0339.JPG.jpeg", "IMG_0233.JPG.jpeg", "IMG_0207.JPG.jpeg", "IMG_0394.JPG.jpeg",
-    // Expanded Grid
-    "IMG_0199.JPG.jpeg", "IMG_0201.JPG.jpeg", "IMG_0205.JPG.jpeg",
-    "IMG_0261.JPG.jpeg", "IMG_0262.JPG.jpeg", "IMG_0274.JPG.jpeg", "IMG_0324.JPG.jpeg",
-    "IMG_0338.JPG.jpeg", "IMG_0347.JPG.jpeg", "IMG_0360.JPG.jpeg", "IMG_0362.JPG.jpeg",
-    "IMG_0368.JPG.jpeg", "IMG_0369.JPG.jpeg", "IMG_0382.JPG.jpeg", "IMG_0384.JPG.jpeg",
-    "IMG_0395.JPG.jpeg", "IMG_0397.JPG.jpeg", "IMG_0399.JPG.jpeg"
-];
+// Extract and flat all images with their respective album name path
+const allImages = galleryAlbums.flatMap(album => 
+    album.images.map(img => `${encodeURIComponent(album.name)}/${encodeURIComponent(img)}`)
+);
 
 // Split images: Top 4 for initial view, rest for expandable grid
 const featuredImages = allImages.slice(0, 4);
