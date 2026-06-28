@@ -75,6 +75,28 @@ const AdminDashboard = ({ lang, setLang }) => {
         }
     };
 
+    const handleMoveImage = async (img, targetAlbumId) => {
+        const filename = getImgName(img);
+        try {
+            setLoading(true);
+            const res = await fetch('/api/move-image', {
+                method: 'POST',
+                headers: authHeaders,
+                body: JSON.stringify({ fromAlbum: activeAlbumName, toAlbum: targetAlbumId, filename })
+            });
+            const result = await res.json();
+            if (result.success) {
+                setStatusMessage(lang === 'ar' ? '📦 تم نقل الصورة بنجاح!' : '📦 Image moved successfully!');
+                await fetchGallery();
+            } else throw new Error(result.error);
+        } catch (err) {
+            console.error(err);
+            setStatusMessage(lang === 'ar' ? '❌ فشل نقل الصورة' : '❌ Failed to move image');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleMigrateLocalImages = async () => {
         const confirmMsg = lang === 'ar'
             ? 'هل تريد استيراد الـ 23 صورة الافتراضية للموقع ورفعهم إلى Cloudinary تلقائياً؟'
@@ -611,13 +633,36 @@ const AdminDashboard = ({ lang, setLang }) => {
                                                     <div className="space-y-2 w-full">
                                                         {!isCoverImage(img) && (
                                                             <button onClick={() => handleSetCover(img)}
-                                                                className="w-full py-2 bg-white/5 hover:bg-[#D4AF37] text-white hover:text-black border border-white/10 hover:border-[#D4AF37] rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold transition-all duration-300">
+                                                                className="w-full py-1.5 bg-white/5 hover:bg-[#D4AF37] text-white hover:text-black border border-white/10 hover:border-[#D4AF37] rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold transition-all duration-300">
                                                                 <FaRegStar />
                                                                 {lang === 'ar' ? 'تعيين كغلاف' : 'Set as Cover'}
                                                             </button>
                                                         )}
+                                                        
+                                                        {/* Move Category Select Dropdown */}
+                                                        <select
+                                                            onChange={(e) => {
+                                                                if (e.target.value) {
+                                                                    handleMoveImage(img, e.target.value);
+                                                                    e.target.value = ''; // Reset
+                                                                }
+                                                            }}
+                                                            className="w-full py-1.5 px-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-lg text-xs font-bold transition-all duration-300 cursor-pointer appearance-none text-center outline-none"
+                                                        >
+                                                            <option value="" className="bg-zinc-950 text-gray-400">
+                                                                {lang === 'ar' ? '📦 نقل إلى قسم...' : '📦 Move to...'}
+                                                            </option>
+                                                            {dashboardAlbums
+                                                                .filter(album => album.id !== activeAlbumName)
+                                                                .map(album => (
+                                                                    <option key={album.id} value={album.id} className="bg-zinc-950 text-white">
+                                                                        {album.displayName}
+                                                                    </option>
+                                                                ))}
+                                                        </select>
+
                                                         <button onClick={() => handleDeleteImage(img)}
-                                                            className="w-full py-2 bg-red-600/90 hover:bg-red-700 text-white rounded-lg flex items-center justify-center gap-2 text-xs font-bold transition-colors">
+                                                            className="w-full py-1.5 bg-red-600/95 hover:bg-red-700 text-white rounded-lg flex items-center justify-center gap-2 text-xs font-bold transition-colors">
                                                             <FaTrash />
                                                             {lang === 'ar' ? 'حذف الصورة' : 'Delete'}
                                                         </button>

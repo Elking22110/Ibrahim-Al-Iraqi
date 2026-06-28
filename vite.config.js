@@ -240,6 +240,37 @@ export default defineConfig({
                             }
                         });
 
+                    } else if (parsedUrl === '/api/move-image' && req.method === 'POST') {
+                        let body = '';
+                        req.on('data', chunk => { body += chunk; });
+                        req.on('end', () => {
+                            try {
+                                const { fromAlbum, toAlbum, filename } = JSON.parse(body);
+                                if (!fromAlbum || !toAlbum || !filename) throw new Error('Missing parameters');
+
+                                const sourcePath = path.resolve(galleryDir, fromAlbum, filename);
+                                const targetDir = path.resolve(galleryDir, toAlbum);
+                                const targetPath = path.resolve(targetDir, filename);
+
+                                if (!fs.existsSync(targetDir)) {
+                                    fs.mkdirSync(targetDir, { recursive: true });
+                                }
+
+                                if (fs.existsSync(sourcePath)) {
+                                    fs.renameSync(sourcePath, targetPath);
+                                    console.log(`[gallery-api] Moved file: ${filename} from ${fromAlbum} to ${toAlbum}`);
+                                }
+
+                                regenerateGalleryConfig(__dirname);
+
+                                res.setHeader('Content-Type', 'application/json');
+                                res.end(JSON.stringify({ success: true }));
+                            } catch (err) {
+                                res.statusCode = 500;
+                                res.end(JSON.stringify({ error: err.message }));
+                            }
+                        });
+
                     } else if (parsedUrl === '/api/auth' && req.method === 'POST') {
                         let body = '';
                         req.on('data', chunk => { body += chunk; });
