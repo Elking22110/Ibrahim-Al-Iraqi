@@ -56,7 +56,9 @@ export default defineConfig({
                         fs.mkdirSync(galleryDir, { recursive: true });
                     }
 
-                    if (req.url === '/api/gallery' && req.method === 'GET') {
+                    const parsedUrl = req.url.split('?')[0];
+
+                    if (parsedUrl === '/api/gallery' && req.method === 'GET') {
                         try {
                             const files = fs.readdirSync(galleryDir);
                             const validExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
@@ -84,7 +86,7 @@ export default defineConfig({
                             res.end(JSON.stringify({ error: err.message }));
                         }
 
-                    } else if (req.url === '/api/upload' && req.method === 'POST') {
+                    } else if (parsedUrl === '/api/upload' && req.method === 'POST') {
                         let bodyChunks = [];
                         req.on('data', chunk => { bodyChunks.push(chunk); });
                         req.on('end', async () => {
@@ -123,7 +125,7 @@ export default defineConfig({
                             }
                         });
 
-                    } else if (req.url === '/api/delete' && req.method === 'POST') {
+                    } else if (parsedUrl === '/api/delete' && req.method === 'POST') {
                         let body = '';
                         req.on('data', chunk => { body += chunk; });
                         req.on('end', () => {
@@ -141,7 +143,7 @@ export default defineConfig({
                             }
                         });
 
-                    } else if (req.url === '/api/create-album' && req.method === 'POST') {
+                    } else if (parsedUrl === '/api/create-album' && req.method === 'POST') {
                         let body = '';
                         req.on('data', chunk => { body += chunk; });
                         req.on('end', () => {
@@ -159,7 +161,7 @@ export default defineConfig({
                             }
                         });
 
-                    } else if (req.url === '/api/delete-album' && req.method === 'POST') {
+                    } else if (parsedUrl === '/api/delete-album' && req.method === 'POST') {
                         let body = '';
                         req.on('data', chunk => { body += chunk; });
                         req.on('end', () => {
@@ -177,7 +179,7 @@ export default defineConfig({
                             }
                         });
 
-                    } else if (req.url === '/api/rename-album' && req.method === 'POST') {
+                    } else if (parsedUrl === '/api/rename-album' && req.method === 'POST') {
                         let body = '';
                         req.on('data', chunk => { body += chunk; });
                         req.on('end', () => {
@@ -196,7 +198,7 @@ export default defineConfig({
                             }
                         });
 
-                    } else if (req.url === '/api/set-cover' && req.method === 'POST') {
+                    } else if (parsedUrl === '/api/set-cover' && req.method === 'POST') {
                         let body = '';
                         req.on('data', chunk => { body += chunk; });
                         req.on('end', () => {
@@ -238,7 +240,7 @@ export default defineConfig({
                             }
                         });
 
-                    } else if (req.url === '/api/auth' && req.method === 'POST') {
+                    } else if (parsedUrl === '/api/auth' && req.method === 'POST') {
                         let body = '';
                         req.on('data', chunk => { body += chunk; });
                         req.on('end', () => {
