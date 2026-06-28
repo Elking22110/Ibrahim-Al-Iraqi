@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 
-const Navbar = ({ lang, setLang, t }) => {
+const Navbar = ({ lang, setLang, t, onNavigate }) => {
     const { scrollY } = useScroll();
     const [hidden, setHidden] = useState(false);
     const [scrolled, setScrolled] = useState(false);
@@ -21,18 +21,35 @@ const Navbar = ({ lang, setLang, t }) => {
     });
 
     const scrollToSection = (id) => {
-        const element = document.getElementById(id);
-        if (element) {
-            const offset = 80; // Offset for navbar height
-            const bodyRect = document.body.getBoundingClientRect().top;
-            const elementRect = element.getBoundingClientRect().top;
-            const elementPosition = elementRect - bodyRect;
-            const offsetPosition = elementPosition - offset;
+        const performScroll = () => {
+            const element = document.getElementById(id);
+            if (element) {
+                const offset = 80; // Offset for navbar height
+                const bodyRect = document.body.getBoundingClientRect().top;
+                const elementRect = element.getBoundingClientRect().top;
+                const elementPosition = elementRect - bodyRect;
+                const offsetPosition = elementPosition - offset;
 
-            window.scrollTo({
-                top: offsetPosition,
-                behavior: 'smooth'
-            });
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        };
+
+        if (window.location.pathname !== '/') {
+            onNavigate('/');
+            setTimeout(performScroll, 450);
+        } else {
+            performScroll();
+        }
+    };
+
+    const handleLogoClick = () => {
+        if (window.location.pathname !== '/') {
+            onNavigate('/');
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
@@ -51,7 +68,7 @@ const Navbar = ({ lang, setLang, t }) => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 1.2 }}
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                onClick={handleLogoClick}
                 className={`text-sm md:text-lg font-bold tracking-[0.2em] cursor-pointer text-[#f5f5f0] whitespace-nowrap ${lang === 'ar' ? 'font-amiri tracking-normal text-xl' : 'font-serif'}`}
             >
                 {t.brand}

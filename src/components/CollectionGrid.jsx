@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
 import ScrollFloat from './ScrollFloat';
 
 // Helper: get image src supporting both Cloudinary objects and local paths
@@ -19,17 +19,7 @@ const getAlbumCover = (album) => {
     return cover || album.images[0];
 };
 
-const CollectionGrid = ({ t, lang, albums = [] }) => {
-    const [activeAlbumName, setActiveAlbumName] = useState(null);
-    const [isExpanded, setIsExpanded] = useState(false);
-    const photosAnchorRef = useRef(null);
-
-    const scrollToPhotos = () => {
-        setTimeout(() => {
-            photosAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 350); // 350ms delay accommodates the expand transition beautifully
-    };
-
+const CollectionGrid = ({ t, lang, albums = [], onNavigate }) => {
     // Default placeholders for the 4 vertical accordion columns
     const defaultCovers = [
         '/The Gallery/Classic/IMG_0199.JPG.jpeg',
@@ -99,16 +89,6 @@ const CollectionGrid = ({ t, lang, albums = [] }) => {
         }
     });
 
-    // Initialize active album name
-    useEffect(() => {
-        if (columnsData.length > 0 && !activeAlbumName) {
-            setActiveAlbumName(columnsData[0].name);
-        }
-    }, [albums, activeAlbumName]);
-
-    // Active column data
-    const activeColumn = columnsData.find(c => c.name === activeAlbumName) || columnsData[0];
-
     return (
         <section id="collection" className={`w-full py-32 bg-[#0A0A0A] relative overflow-hidden ${lang === 'ar' ? 'font-cairo' : ''}`}>
             
@@ -146,15 +126,12 @@ const CollectionGrid = ({ t, lang, albums = [] }) => {
                 {/* Exactly 4 Accordion Columns (Albums) */}
                 <div className="flex flex-col lg:flex-row gap-4 h-auto min-h-screen lg:min-h-0 lg:h-[600px] w-full mb-16">
                     {columnsData.map((col, index) => {
-                        const isActive = activeAlbumName === col.name;
-
                         return (
                             <motion.div
                                 key={col.id}
                                 onClick={() => {
-                                    setActiveAlbumName(col.name);
-                                    setIsExpanded(true); // Auto expand to show photos
-                                    scrollToPhotos();
+                                    const pathMap = ['Classic', 'Wedding', 'Casual', 'Luxury'];
+                                    onNavigate(`/album/${pathMap[index]}`);
                                 }}
                                 className="relative flex-1 group overflow-hidden rounded-sm cursor-pointer border border-white/5"
                                 layout
@@ -181,90 +158,12 @@ const CollectionGrid = ({ t, lang, albums = [] }) => {
                                     <h4 className="text-white text-2xl tracking-[0.15em] font-serif uppercase mb-2 group-hover:text-[#D4AF37] transition-colors duration-300">
                                         {col.name}
                                     </h4>
-                                    <div className={`h-[1px] bg-[#D4AF37] transition-all duration-500 origin-left ${
-                                        isActive ? 'w-24' : 'w-0 group-hover:w-16'
-                                    }`}></div>
+                                    <div className="h-[1px] bg-[#D4AF37] transition-all duration-500 origin-left w-0 group-hover:w-16"></div>
                                 </div>
                             </motion.div>
                         );
                     })}
                 </div>
-
-                {/* View/Explore Selected Album Button */}
-                {activeColumn && (
-                    <div className="flex justify-center mb-12">
-                        <motion.button
-                            layout
-                            onClick={() => {
-                                const nextVal = !isExpanded;
-                                setIsExpanded(nextVal);
-                                if (nextVal) {
-                                    scrollToPhotos();
-                                }
-                            }}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="px-8 py-3.5 border border-[#D4AF37] text-[#D4AF37] uppercase tracking-widest text-xs font-bold hover:bg-[#D4AF37] hover:text-black transition-colors duration-300 rounded-full"
-                        >
-                            {isExpanded
-                                ? (lang === 'ar' ? `إخفاء صور ${activeAlbumName}` : `Hide ${activeAlbumName} Photos`)
-                                : (lang === 'ar' ? `استعراض صور قسم ${activeAlbumName}` : `Explore ${activeAlbumName} Photos`)
-                            }
-                        </motion.button>
-                    </div>
-                )}
-
-                {/* Scroll Anchor */}
-                <div ref={photosAnchorRef} className="scroll-mt-24" />
-
-                {/* Selected Album Images Grid */}
-                <AnimatePresence>
-                    {isExpanded && activeColumn && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.8, ease: [0.25, 1, 0.5, 1] }}
-                            className="overflow-hidden"
-                        >
-                            {activeColumn.images.length === 0 ? (
-                                <div className="text-center py-20 text-gray-500 text-sm border border-dashed border-white/10 rounded-2xl">
-                                    {lang === 'ar' 
-                                        ? 'هذا القسم فارغ حالياً. يمكنك إضافة صور وتعيين غلاف له من لوحة التحكم.' 
-                                        : 'This category is empty. You can add photos and set its cover from the admin dashboard.'}
-                                </div>
-                            ) : (
-                                <div className="columns-1 md:columns-3 gap-6 space-y-6 pb-20">
-                                    {activeColumn.images.map((img, index) => {
-                                        // Hide cover file to prevent duplicate if there are other files
-                                        const name = typeof img === 'object' ? img.filename : img;
-                                        const isCover = name && name.toLowerCase().startsWith('cover');
-                                        if (isCover && activeColumn.images.length > 1) return null;
-
-                                        return (
-                                            <motion.div
-                                                key={index}
-                                                initial={{ opacity: 0, y: 30 }}
-                                                whileInView={{ opacity: 1, y: 0 }}
-                                                transition={{ duration: 0.6, delay: Math.min(index * 0.05, 0.3) }}
-                                                viewport={{ once: true }}
-                                                className="break-inside-avoid relative group overflow-hidden rounded-xl border border-white/5 bg-zinc-900/20"
-                                            >
-                                                <img
-                                                    src={getImgSrc(activeColumn.id, img)}
-                                                    alt={`${activeColumn.name} ${index + 1}`}
-                                                    className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700 cursor-zoom-in"
-                                                    loading="lazy"
-                                                />
-                                                <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500 pointer-events-none"></div>
-                                            </motion.div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </motion.div>
-                    )}
-                </AnimatePresence>
 
             </div>
         </section>
