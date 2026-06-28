@@ -1,16 +1,25 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ScrollFloat from './ScrollFloat';
-import { galleryAlbums } from '../galleryConfig';
 
-const GallerySection = ({ t, lang }) => {
+const GallerySection = ({ t, lang, albums = [] }) => {
     const [selectedCategory, setSelectedCategory] = useState('All');
     
     const allLabel = lang === 'ar' ? 'الكل' : 'All';
 
     const filteredImages = selectedCategory === 'All'
-        ? galleryAlbums.flatMap(album => album.images.map(img => ({ albumName: album.name, filename: img })))
-        : (galleryAlbums.find(album => album.name === selectedCategory)?.images.map(img => ({ albumName: selectedCategory, filename: img })) || []);
+        ? albums.flatMap(album => album.images.map(img => ({ albumName: album.name, img })))
+        : (albums.find(album => album.name === selectedCategory)?.images.map(img => ({ albumName: selectedCategory, img })) || []);
+
+    // Support both Cloudinary objects {url, filename} and local string paths
+    const getImgSrc = (albumName, img) => {
+        if (typeof img === 'object' && img.url) return img.url;
+        return `/The Gallery/${encodeURIComponent(albumName)}/${encodeURIComponent(img)}`;
+    };
+    const getImgKey = (albumName, img) => {
+        const name = typeof img === 'object' ? img.filename : img;
+        return `${albumName}-${name}`;
+    };
 
     return (
         <section id="gallery" className={`w-full py-24 bg-[#0a0a0a] relative overflow-hidden ${lang === 'ar' ? 'font-cairo' : ''}`}>
@@ -56,7 +65,7 @@ const GallerySection = ({ t, lang }) => {
                     >
                         {allLabel}
                     </button>
-                    {galleryAlbums.map((album, idx) => (
+                    {albums.map((album, idx) => (
                         <button
                             key={idx}
                             onClick={() => setSelectedCategory(album.name)}
@@ -77,9 +86,9 @@ const GallerySection = ({ t, lang }) => {
                     className="columns-1 md:columns-3 gap-4 space-y-4"
                 >
                     <AnimatePresence mode="popLayout">
-                        {filteredImages.map((img, index) => (
+                        {filteredImages.map(({ albumName, img }, index) => (
                             <motion.div
-                                key={`${img.albumName}-${img.filename}`}
+                                key={getImgKey(albumName, img)}
                                 layout
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -89,7 +98,7 @@ const GallerySection = ({ t, lang }) => {
                             >
                                 <div className="relative overflow-hidden w-full">
                                     <img
-                                        src={`/The Gallery/${encodeURIComponent(img.albumName)}/${encodeURIComponent(img.filename)}`}
+                                        src={getImgSrc(albumName, img)}
                                         alt={`Gallery Image ${index + 1}`}
                                         className="w-full h-auto object-cover transform transition-all duration-700 group-hover:scale-105"
                                         loading="lazy"

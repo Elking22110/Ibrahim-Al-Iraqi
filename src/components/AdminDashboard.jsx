@@ -1,23 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import { FaTrash, FaUpload, FaArrowLeft, FaSpinner, FaFolderPlus, FaEdit, FaFolder, FaImages } from 'react-icons/fa';
+import { FaTrash, FaUpload, FaArrowLeft, FaSpinner, FaFolderPlus, FaEdit, FaFolder, FaImages, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+
+const STORAGE_KEY = 'admin_auth_pw';
 
 const AdminDashboard = ({ lang, setLang }) => {
+    // ─── Auth State ────────────────────────────────────────────────
+    const [authPw, setAuthPw] = useState(() => sessionStorage.getItem(STORAGE_KEY) || '');
+    const [pwInput, setPwInput] = useState('');
+    const [showPw, setShowPw] = useState(false);
+    const [authError, setAuthError] = useState('');
+    const [authLoading, setAuthLoading] = useState(false);
+    const isAuthed = Boolean(authPw);
+
+    // ─── Gallery State ────────────────────────────────────────────
     const [albums, setAlbums] = useState([]);
     const [activeAlbumName, setActiveAlbumName] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [statusMessage, setStatusMessage] = useState('');
     const [dragActive, setDragActive] = useState(false);
 
-    // Fetch structured albums list from Vite middleware API
+    const authHeaders = {
+        'Content-Type': 'application/json',
+        'x-admin-password': authPw,
+    };
+
+    // ─── Auth Login ────────────────────────────────────────────────
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setAuthLoading(true);
+        setAuthError('');
+        try {
+            const res = await fetch('/api/auth', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: pwInput }),
+            });
+            if (res.ok) {
+                sessionStorage.setItem(STORAGE_KEY, pwInput);
+                setAuthPw(pwInput);
+            } else {
+                setAuthError(lang === 'ar' ? 'كلمة المرور غير صحيحة' : 'Incorrect password');
+            }
+        } catch {
+            setAuthError(lang === 'ar' ? 'تعذّر الاتصال بالخادم' : 'Could not connect to server');
+        } finally {
+            setAuthLoading(false);
+        }
+    };
+
+    const handleLogout = () => {
+        sessionStorage.removeItem(STORAGE_KEY);
+        setAuthPw('');
+        setPwInput('');
+    };
+
+    // ─── Gallery Fetch ─────────────────────────────────────────────
     const fetchGallery = async () => {
         try {
             setLoading(true);
             const res = await fetch('/api/gallery');
             const data = await res.json();
-            if (data.albums) {
-                setAlbums(data.albums);
-            }
+            if (data.albums) setAlbums(data.albums);
         } catch (error) {
             console.error('Error fetching gallery:', error);
             setStatusMessage(lang === 'ar' ? 'فشل تحميل الأقسام من الخادم' : 'Failed to fetch categories from server');
@@ -27,415 +71,387 @@ const AdminDashboard = ({ lang, setLang }) => {
     };
 
     useEffect(() => {
-        fetchGallery();
-    }, []);
+        if (isAuthed) fetchGallery();
+    }, [isAuthed]);
 
-    // Get current active album details
     const activeAlbum = albums.find(a => a.name === activeAlbumName);
 
-    // Handle folder/album creation
+    // ─── Album CRUD ────────────────────────────────────────────────
     const handleCreateAlbum = async () => {
-        const promptMsg = lang === 'ar' 
-            ? 'أدخل اسم القسم الجديد باللغة العربية أو الإنجليزية:'
-            : 'Enter name for the new category/album:';
-        const albumName = window.prompt(promptMsg);
-        if (!albumName || albumName.trim() === '') return;
-
+        const albumName = window.prompt(lang === 'ar' ? 'أدخل اسم القسم الجديد:' : 'Enter new category name:');
+        if (!albumName?.trim()) return;
         try {
             setLoading(true);
-            const response = await fetch('/api/create-album', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const res = await fetch('/api/create-album', {
+                method: 'POST', headers: authHeaders,
                 body: JSON.stringify({ name: albumName.trim() })
             });
-            const result = await response.json();
+            const result = await res.json();
             if (result.success) {
-                setStatusMessage(lang === 'ar' ? `تم إنشاء القسم "${albumName}" بنجاح!` : `Category "${albumName}" created successfully!`);
+                setStatusMessage(lang === 'ar' ? `✅ تم إنشاء القسم "${albumName}"` : `✅ Category "${albumName}" created`);
                 await fetchGallery();
-            } else {
-                throw new Error(result.error);
-            }
+            } else throw new Error(result.error);
         } catch (err) {
-            console.error(err);
-            setStatusMessage(lang === 'ar' ? 'فشل إنشاء القسم' : 'Failed to create category');
-        } finally {
-            setLoading(false);
-        }
+            setStatusMessage(lang === 'ar' ? '❌ فشل إنشاء القسم' : '❌ Failed to create category');
+        } finally { setLoading(false); }
     };
 
-    // Handle folder/album deletion
     const handleDeleteAlbum = async (albumName) => {
-        const confirmMsg = lang === 'ar'
-            ? `تحذير: هل أنت متأكد من رغبتك في حذف القسم "${albumName}" بالكامل؟ سيتم مسح جميع الصور بداخل هذا القسم نهائياً!`
-            : `WARNING: Are you sure you want to delete the category "${albumName}"? This will permanently delete all images inside it!`;
-        
-        if (!window.confirm(confirmMsg)) return;
-
+        const msg = lang === 'ar'
+            ? `تحذير: هل أنت متأكد من حذف القسم "${albumName}" بالكامل؟ سيُحذف كل محتواه نهائياً!`
+            : `WARNING: Delete category "${albumName}"? All images inside will be permanently deleted!`;
+        if (!window.confirm(msg)) return;
         try {
             setLoading(true);
-            const response = await fetch('/api/delete-album', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const res = await fetch('/api/delete-album', {
+                method: 'POST', headers: authHeaders,
                 body: JSON.stringify({ name: albumName })
             });
-            const result = await response.json();
+            const result = await res.json();
             if (result.success) {
-                setStatusMessage(lang === 'ar' ? 'تم حذف القسم بنجاح' : 'Category deleted successfully');
-                if (activeAlbumName === albumName) {
-                    setActiveAlbumName(null);
-                }
+                setStatusMessage(lang === 'ar' ? '✅ تم حذف القسم' : '✅ Category deleted');
+                if (activeAlbumName === albumName) setActiveAlbumName(null);
                 await fetchGallery();
-            } else {
-                throw new Error(result.error);
-            }
-        } catch (err) {
-            console.error(err);
-            setStatusMessage(lang === 'ar' ? 'فشل حذف القسم' : 'Failed to delete category');
-        } finally {
-            setLoading(false);
-        }
+            } else throw new Error(result.error);
+        } catch {
+            setStatusMessage(lang === 'ar' ? '❌ فشل حذف القسم' : '❌ Failed to delete category');
+        } finally { setLoading(false); }
     };
 
-    // Handle folder/album renaming
     const handleRenameAlbum = async (oldName) => {
-        const promptMsg = lang === 'ar'
-            ? `أدخل الاسم الجديد للقسم عوضاً عن "${oldName}":`
-            : `Enter new name for the category "${oldName}":`;
-        const newName = window.prompt(promptMsg, oldName);
-        if (!newName || newName.trim() === '' || newName.trim() === oldName) return;
-
+        const newName = window.prompt(lang === 'ar' ? `الاسم الجديد للقسم "${oldName}":` : `New name for "${oldName}":`, oldName);
+        if (!newName?.trim() || newName.trim() === oldName) return;
         try {
             setLoading(true);
-            const response = await fetch('/api/rename-album', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const res = await fetch('/api/rename-album', {
+                method: 'POST', headers: authHeaders,
                 body: JSON.stringify({ oldName, newName: newName.trim() })
             });
-            const result = await response.json();
+            const result = await res.json();
             if (result.success) {
-                setStatusMessage(lang === 'ar' ? 'تم تعديل اسم القسم بنجاح' : 'Category renamed successfully');
-                if (activeAlbumName === oldName) {
-                    setActiveAlbumName(newName.trim());
-                }
+                setStatusMessage(lang === 'ar' ? '✅ تم تعديل اسم القسم' : '✅ Category renamed');
+                if (activeAlbumName === oldName) setActiveAlbumName(newName.trim());
                 await fetchGallery();
-            } else {
-                throw new Error(result.error);
-            }
-        } catch (err) {
-            console.error(err);
-            setStatusMessage(lang === 'ar' ? 'فشل تعديل اسم القسم' : 'Failed to rename category');
-        } finally {
-            setLoading(false);
-        }
+            } else throw new Error(result.error);
+        } catch {
+            setStatusMessage(lang === 'ar' ? '❌ فشل تعديل الاسم' : '❌ Failed to rename');
+        } finally { setLoading(false); }
     };
 
-    // Handle file selection and conversion to base64 inside active album
+    // ─── Image Upload ──────────────────────────────────────────────
+    const convertToBase64 = (file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+    });
+
     const handleFileUpload = async (files) => {
-        if (!files || files.length === 0 || !activeAlbumName) return;
+        if (!files?.length || !activeAlbumName) return;
         setUploading(true);
         setStatusMessage('');
-
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            
+        for (const file of files) {
             if (!file.type.startsWith('image/')) {
-                setStatusMessage(lang === 'ar' ? `الملف ${file.name} ليس صورة صالحة` : `${file.name} is not a valid image`);
+                setStatusMessage(lang === 'ar' ? `❌ ${file.name} ليست صورة` : `❌ ${file.name} is not an image`);
                 continue;
             }
-
             try {
                 const base64Data = await convertToBase64(file);
-                const response = await fetch('/api/upload', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        album: activeAlbumName,
-                        name: file.name,
-                        data: base64Data
-                    })
+                const res = await fetch('/api/upload', {
+                    method: 'POST', headers: authHeaders,
+                    body: JSON.stringify({ album: activeAlbumName, name: file.name, data: base64Data })
                 });
-
-                const result = await response.json();
+                const result = await res.json();
                 if (result.success) {
-                    const savedPct = result.originalKB && result.compressedKB
+                    const saved = result.originalKB && result.compressedKB
                         ? Math.round((1 - result.compressedKB / result.originalKB) * 100)
                         : null;
-
-                    const msg = lang === 'ar'
-                        ? savedPct !== null
-                            ? `✅ تم رفع "${result.name}" — الحجم الأصلي: ${result.originalKB}KB → بعد الضغط: ${result.compressedKB}KB WebP (وفّرنا ${savedPct}%)`
-                            : `✅ تم رفع الصورة بنجاح`
-                        : savedPct !== null
-                            ? `✅ Uploaded "${result.name}" — ${result.originalKB}KB → ${result.compressedKB}KB WebP (saved ${savedPct}%)`
-                            : `✅ Image uploaded successfully`;
-
-                    setStatusMessage(msg);
-                } else {
-                    throw new Error(result.error || 'Upload failed');
-                }
+                    setStatusMessage(lang === 'ar'
+                        ? `✅ تم رفع "${result.name}" — ${result.originalKB}KB → ${result.compressedKB}KB WebP${saved ? ` (وفّرنا ${saved}%)` : ''}`
+                        : `✅ Uploaded "${result.name}" — ${result.originalKB}KB → ${result.compressedKB}KB WebP${saved ? ` (saved ${saved}%)` : ''}`
+                    );
+                } else throw new Error(result.error);
             } catch (err) {
-                console.error(err);
-                setStatusMessage(lang === 'ar' ? `فشل رفع ${file.name}` : `Failed to upload ${file.name}`);
+                setStatusMessage(lang === 'ar' ? `❌ فشل رفع ${file.name}` : `❌ Failed to upload ${file.name}`);
             }
         }
-
         setUploading(false);
-        await fetchGallery(); // Refresh lists
+        await fetchGallery();
     };
 
-    // Helper to read file as base64 data URL
-    const convertToBase64 = (file) => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = (error) => reject(error);
-        });
-    };
-
-    // Delete image handler from specific album
-    const handleDeleteImage = async (filename) => {
-        const confirmMsg = lang === 'ar' 
-            ? `هل أنت متأكد من رغبتك في حذف الصورة "${filename}" من القسم "${activeAlbumName}"؟`
-            : `Are you sure you want to delete "${filename}" from "${activeAlbumName}"?`;
-        
+    // ─── Image Delete ──────────────────────────────────────────────
+    const handleDeleteImage = async (img) => {
+        const filename = img.filename || img;
+        const confirmMsg = lang === 'ar'
+            ? `هل أنت متأكد من حذف الصورة "${filename}"؟`
+            : `Delete image "${filename}"?`;
         if (!window.confirm(confirmMsg)) return;
-
         try {
-            const response = await fetch('/api/delete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const res = await fetch('/api/delete', {
+                method: 'POST', headers: authHeaders,
                 body: JSON.stringify({ album: activeAlbumName, name: filename })
             });
-            const result = await response.json();
+            const result = await res.json();
             if (result.success) {
-                setStatusMessage(lang === 'ar' ? 'تم حذف الصورة بنجاح' : 'Image deleted successfully');
-                await fetchGallery(); // Refresh
-            } else {
-                throw new Error(result.error);
-            }
-        } catch (error) {
-            console.error(error);
-            setStatusMessage(lang === 'ar' ? 'فشل حذف الصورة' : 'Failed to delete image');
+                setStatusMessage(lang === 'ar' ? '✅ تم حذف الصورة' : '✅ Image deleted');
+                await fetchGallery();
+            } else throw new Error(result.error);
+        } catch {
+            setStatusMessage(lang === 'ar' ? '❌ فشل حذف الصورة' : '❌ Failed to delete image');
         }
     };
 
-    // Drag & Drop handlers
+    // ─── Drag & Drop ───────────────────────────────────────────────
     const handleDrag = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.type === "dragenter" || e.type === "dragover") {
-            setDragActive(true);
-        } else if (e.type === "dragleave") {
-            setDragActive(false);
-        }
+        e.preventDefault(); e.stopPropagation();
+        setDragActive(e.type === 'dragenter' || e.type === 'dragover');
     };
-
     const handleDrop = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+        e.preventDefault(); e.stopPropagation();
         setDragActive(false);
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            handleFileUpload(e.dataTransfer.files);
-        }
+        if (e.dataTransfer.files?.[0]) handleFileUpload(e.dataTransfer.files);
     };
 
-    // Navigation helper to go back home
     const goHome = () => {
         window.history.pushState({}, '', '/');
         window.dispatchEvent(new Event('popstate'));
     };
 
+    // ─── Get image src — works for both Cloudinary URLs and local paths ─
+    const getImgSrc = (img) => {
+        if (typeof img === 'object' && img.url) return img.url;
+        return `/The Gallery/${encodeURIComponent(activeAlbumName)}/${encodeURIComponent(img)}`;
+    };
+    const getImgName = (img) => typeof img === 'object' ? img.filename : img;
+
+    // ════════════════════════════════════════════════════════════════
+    // LOGIN SCREEN
+    // ════════════════════════════════════════════════════════════════
+    if (!isAuthed) {
+        return (
+            <div className={`min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4 ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}>
+                <div className="w-full max-w-sm">
+                    {/* Logo area */}
+                    <div className="text-center mb-10">
+                        <div className="w-16 h-16 mx-auto mb-4 bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-2xl flex items-center justify-center">
+                            <FaLock className="text-[#D4AF37] text-2xl" />
+                        </div>
+                        <h1 className="text-2xl font-bold text-[#D4AF37] tracking-wider">
+                            {lang === 'ar' ? 'لوحة التحكم' : 'Admin Panel'}
+                        </h1>
+                        <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest">
+                            Ibrahim Al-Iraqi — Gallery Manager
+                        </p>
+                    </div>
+
+                    {/* Login form */}
+                    <form onSubmit={handleLogin} className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-xl space-y-5">
+                        <div className="relative">
+                            <label className="text-xs text-gray-400 uppercase tracking-widest block mb-2">
+                                {lang === 'ar' ? 'كلمة المرور' : 'Password'}
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type={showPw ? 'text' : 'password'}
+                                    value={pwInput}
+                                    onChange={e => setPwInput(e.target.value)}
+                                    placeholder="••••••••"
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 pr-12 text-white text-sm outline-none focus:border-[#D4AF37] transition-colors"
+                                    dir="ltr"
+                                    autoFocus
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPw(v => !v)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                                >
+                                    {showPw ? <FaEyeSlash /> : <FaEye />}
+                                </button>
+                            </div>
+                        </div>
+
+                        {authError && (
+                            <p className="text-red-400 text-xs text-center">{authError}</p>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={authLoading || !pwInput}
+                            className="w-full py-3 bg-[#D4AF37] hover:bg-[#F2E8C9] disabled:opacity-50 text-black font-black rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+                        >
+                            {authLoading ? <FaSpinner className="animate-spin" /> : <FaLock />}
+                            {authLoading
+                                ? (lang === 'ar' ? 'جاري التحقق...' : 'Verifying...')
+                                : (lang === 'ar' ? 'دخول' : 'Login')}
+                        </button>
+
+                        <button type="button" onClick={goHome} className="w-full text-center text-xs text-gray-500 hover:text-gray-300 transition-colors mt-2">
+                            ← {lang === 'ar' ? 'العودة للموقع' : 'Back to website'}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        );
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // MAIN DASHBOARD
+    // ════════════════════════════════════════════════════════════════
     return (
         <div className={`min-h-screen bg-[#0A0A0A] text-[#f5f5f0] py-12 px-6 md:px-16 ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}>
-            
-            {/* Header Area */}
+
+            {/* Header */}
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 mb-12 border-b border-white/10 pb-8">
                 <div className="flex items-center gap-4">
-                    <button 
+                    <button
                         onClick={activeAlbumName ? () => setActiveAlbumName(null) : goHome}
-                        className="p-3 bg-white/5 border border-white/10 hover:border-[#D4AF37] hover:text-[#D4AF37] rounded-full transition-all duration-300 flex items-center justify-center text-sm"
-                        title={activeAlbumName ? (lang === 'ar' ? "العودة للأقسام" : "Back to Categories") : (lang === 'ar' ? "العودة للرئيسية" : "Back to Home")}
+                        className="p-3 bg-white/5 border border-white/10 hover:border-[#D4AF37] hover:text-[#D4AF37] rounded-full transition-all duration-300 text-sm"
+                        title={activeAlbumName ? (lang === 'ar' ? 'رجوع للأقسام' : 'Back to Categories') : (lang === 'ar' ? 'رجوع للموقع' : 'Back to Site')}
                     >
                         <FaArrowLeft />
                     </button>
                     <div>
                         <h1 className="text-3xl font-bold tracking-wider text-[#D4AF37]">
-                            {activeAlbumName 
-                                ? (lang === 'ar' ? `إدارة قسم: ${activeAlbumName}` : `Category: ${activeAlbumName}`) 
+                            {activeAlbumName
+                                ? (lang === 'ar' ? `قسم: ${activeAlbumName}` : `Category: ${activeAlbumName}`)
                                 : (lang === 'ar' ? 'أقسام معرض الصور' : 'Gallery Categories')}
                         </h1>
                         <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">
-                            {activeAlbumName 
-                                ? (lang === 'ar' ? `إدارة وصيانة صور ألبوم ${activeAlbumName}` : `Manage active photos in ${activeAlbumName}`)
-                                : (lang === 'ar' ? 'لوحة التحكم وإدارة ألبومات الملابس والبدل' : 'Organize and curate suits catalogs and collections')}
+                            {lang === 'ar' ? 'إدارة الألبومات والصور' : 'Manage albums & images'}
                         </p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
-                        className="text-xs font-bold text-[#f5f5f0]/70 hover:text-[#D4AF37] transition-colors uppercase tracking-widest px-4 py-2 bg-white/5 rounded border border-white/5 hover:border-[#D4AF37]"
-                    >
+                <div className="flex items-center gap-3">
+                    <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
+                        className="text-xs font-bold text-[#f5f5f0]/70 hover:text-[#D4AF37] transition-colors uppercase tracking-widest px-4 py-2 bg-white/5 rounded border border-white/5 hover:border-[#D4AF37]">
                         {lang === 'en' ? 'AR' : 'EN'}
+                    </button>
+                    <button onClick={handleLogout}
+                        className="text-xs font-bold text-red-400 hover:text-red-300 transition-colors uppercase tracking-widest px-4 py-2 bg-red-500/5 rounded border border-red-500/20 hover:border-red-500/50">
+                        {lang === 'ar' ? 'خروج' : 'Logout'}
                     </button>
                 </div>
             </div>
 
-            {/* Status Message Panel */}
+            {/* Status Message */}
             {statusMessage && (
-                <div className="max-w-7xl mx-auto mb-8 p-4 bg-white/5 border border-white/10 rounded-lg text-center text-sm font-semibold text-[#D4AF37] animate-fade-in-up">
+                <div className="max-w-7xl mx-auto mb-8 p-4 bg-white/5 border border-white/10 rounded-lg text-center text-sm font-semibold text-[#D4AF37]">
                     {statusMessage}
                 </div>
             )}
 
-            {/* Dashboard Workspace */}
+            {/* Workspace */}
             <div className="max-w-7xl mx-auto">
                 {loading && albums.length === 0 ? (
                     <div className="h-96 flex flex-col items-center justify-center gap-3 text-gray-500">
                         <FaSpinner className="animate-spin text-[#D4AF37] text-3xl" />
-                        <p>{lang === 'ar' ? 'جاري تحميل لوحة التحكم...' : 'Loading dashboard data...'}</p>
+                        <p>{lang === 'ar' ? 'جاري التحميل...' : 'Loading...'}</p>
                     </div>
                 ) : !activeAlbumName ? (
-                    
-                    /* ----------------------------------------------------
-                       1. ALBUM LIST VIEW
-                       ---------------------------------------------------- */
+
+                    /* ── Album List View ── */
                     <div className="space-y-8">
-                        {/* Top Action Bar */}
                         <div className="flex justify-between items-center">
                             <h2 className="text-xl font-bold text-white flex items-center gap-3">
                                 <FaImages className="text-[#D4AF37]" />
                                 {lang === 'ar' ? 'الأقسام الحالية' : 'Available Categories'}
                             </h2>
-                            <button
-                                onClick={handleCreateAlbum}
-                                className="px-6 py-3 bg-[#D4AF37] text-black hover:bg-[#F2E8C9] rounded-full flex items-center gap-2 text-sm font-black transition-all duration-300 shadow-lg"
-                            >
+                            <button onClick={handleCreateAlbum}
+                                className="px-6 py-3 bg-[#D4AF37] text-black hover:bg-[#F2E8C9] rounded-full flex items-center gap-2 text-sm font-black transition-all duration-300 shadow-lg">
                                 <FaFolderPlus />
-                                {lang === 'ar' ? 'إنشاء قسم جديد' : 'Create New Category'}
+                                {lang === 'ar' ? 'إنشاء قسم جديد' : 'New Category'}
                             </button>
                         </div>
 
-                        {/* Albums Cards Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {albums.map((album, idx) => (
-                                <div key={idx} className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl hover:border-[#D4AF37]/50 transition-all duration-300 flex flex-col justify-between group">
-                                    <div className="space-y-4">
-                                        {/* Icon & Details */}
-                                        <div className="flex justify-between items-start">
-                                            <div className="p-4 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-xl text-[#D4AF37] text-3xl">
-                                                <FaFolder />
+                        {albums.length === 0 ? (
+                            <div className="h-64 border border-dashed border-white/10 rounded-2xl flex items-center justify-center text-gray-500 text-sm">
+                                {lang === 'ar' ? 'لا توجد أقسام بعد. أنشئ قسمك الأول!' : 'No categories yet. Create your first one!'}
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                {albums.map((album, idx) => (
+                                    <div key={idx} className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl hover:border-[#D4AF37]/50 transition-all duration-300 flex flex-col justify-between group">
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-start">
+                                                <div className="p-4 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-xl text-[#D4AF37] text-3xl">
+                                                    <FaFolder />
+                                                </div>
+                                                <span className="px-3 py-1 bg-white/5 border border-white/10 text-xs rounded-full font-bold">
+                                                    {album.images.length} {lang === 'ar' ? 'صورة' : 'photos'}
+                                                </span>
                                             </div>
-                                            <span className="px-3 py-1 bg-white/5 border border-white/10 text-xs rounded-full font-bold">
-                                                {album.images.length} {lang === 'ar' ? 'صورة' : 'photos'}
-                                            </span>
-                                        </div>
-
-                                        {/* Title */}
-                                        <div>
-                                            <h3 className="text-xl font-bold text-white group-hover:text-[#D4AF37] transition-colors duration-300 truncate">
+                                            <h3 className="text-xl font-bold text-white group-hover:text-[#D4AF37] transition-colors truncate">
                                                 {album.name}
                                             </h3>
                                         </div>
+                                        <div className="flex gap-3 mt-8 border-t border-white/5 pt-4">
+                                            <button onClick={() => setActiveAlbumName(album.name)}
+                                                className="flex-1 py-2 bg-white/5 hover:bg-[#D4AF37] text-white hover:text-black border border-white/10 hover:border-[#D4AF37] rounded-lg text-xs font-bold transition-all duration-300">
+                                                {lang === 'ar' ? 'دخول وإدارة الصور' : 'Manage Images'}
+                                            </button>
+                                            <button onClick={() => handleRenameAlbum(album.name)}
+                                                className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+                                                title={lang === 'ar' ? 'تعديل الاسم' : 'Rename'}>
+                                                <FaEdit />
+                                            </button>
+                                            <button onClick={() => handleDeleteAlbum(album.name)}
+                                                className="p-2.5 bg-red-950/20 hover:bg-red-600 border border-red-500/20 rounded-lg text-red-500 hover:text-white transition-colors"
+                                                title={lang === 'ar' ? 'حذف القسم' : 'Delete'}>
+                                                <FaTrash />
+                                            </button>
+                                        </div>
                                     </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="flex gap-3 mt-8 border-t border-white/5 pt-4">
-                                        <button
-                                            onClick={() => setActiveAlbumName(album.name)}
-                                            className="flex-1 py-2 bg-white/5 hover:bg-[#D4AF37] text-white hover:text-black border border-white/10 hover:border-[#D4AF37] rounded-lg text-xs font-bold transition-all duration-300 text-center"
-                                        >
-                                            {lang === 'ar' ? 'دخول وإدارة الصور' : 'Manage Images'}
-                                        </button>
-                                        
-                                        <button
-                                            onClick={() => handleRenameAlbum(album.name)}
-                                            className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
-                                            title={lang === 'ar' ? 'تعديل الاسم' : 'Rename Category'}
-                                        >
-                                            <FaEdit />
-                                        </button>
-
-                                        <button
-                                            onClick={() => handleDeleteAlbum(album.name)}
-                                            className="p-2.5 bg-red-950/20 hover:bg-red-600 border border-red-500/20 rounded-lg text-red-500 hover:text-white transition-colors"
-                                            title={lang === 'ar' ? 'حذف القسم' : 'Delete Category'}
-                                        >
-                                            <FaTrash />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                 ) : (
 
-                    /* ----------------------------------------------------
-                       2. ALBUM DETAIL VIEW (Upload & Edit images inside)
-                       ---------------------------------------------------- */
+                    /* ── Album Detail View ── */
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                        {/* Left Column: Upload */}
+                        {/* Upload Column */}
                         <div className="lg:col-span-1 space-y-6">
                             <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-xl">
                                 <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-3">
                                     <h2 className="text-lg font-bold text-white flex items-center gap-2">
                                         <FaUpload className="text-[#D4AF37]" />
-                                        {lang === 'ar' ? 'رفع صور للقسم' : 'Upload Images'}
+                                        {lang === 'ar' ? 'رفع صور' : 'Upload Images'}
                                     </h2>
-                                    <button 
-                                        onClick={() => handleRenameAlbum(activeAlbumName)}
-                                        className="text-xs text-gray-400 hover:text-[#D4AF37] flex items-center gap-1.5 transition-colors"
-                                    >
+                                    <button onClick={() => handleRenameAlbum(activeAlbumName)}
+                                        className="text-xs text-gray-400 hover:text-[#D4AF37] flex items-center gap-1.5 transition-colors">
                                         <FaEdit /> {lang === 'ar' ? 'تغيير الاسم' : 'Rename'}
                                     </button>
                                 </div>
 
-                                {/* Drag and Drop Zone */}
-                                <form 
-                                    onDragEnter={handleDrag} 
-                                    onDragOver={handleDrag} 
-                                    onDragLeave={handleDrag} 
-                                    onDrop={handleDrop} 
-                                    onSubmit={(e) => e.preventDefault()}
-                                    className={`w-full h-64 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all duration-300 ${
-                                        dragActive 
-                                            ? 'border-[#D4AF37] bg-[#D4AF37]/5' 
-                                            : 'border-white/20 hover:border-white/40 hover:bg-white/5'
-                                    }`}
+                                <form
+                                    onDragEnter={handleDrag} onDragOver={handleDrag}
+                                    onDragLeave={handleDrag} onDrop={handleDrop}
+                                    onSubmit={e => e.preventDefault()}
+                                    className={`w-full h-64 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all duration-300 ${dragActive ? 'border-[#D4AF37] bg-[#D4AF37]/5' : 'border-white/20 hover:border-white/40 hover:bg-white/5'}`}
                                     onClick={() => document.getElementById('file-upload-input').click()}
                                 >
-                                    <input 
-                                        id="file-upload-input"
-                                        type="file" 
-                                        multiple 
-                                        accept="image/*"
-                                        className="hidden" 
-                                        onChange={(e) => handleFileUpload(e.target.files)}
-                                    />
-                                    
+                                    <input id="file-upload-input" type="file" multiple accept="image/*" className="hidden"
+                                        onChange={e => handleFileUpload(e.target.files)} />
                                     <div className="p-4 bg-white/5 border border-white/10 rounded-full mb-4 text-[#D4AF37]">
                                         <FaUpload className="text-2xl" />
                                     </div>
-                                    
                                     <p className="text-sm font-semibold text-white mb-1">
                                         {lang === 'ar' ? 'اسحب الصور وأفلتها هنا' : 'Drag & Drop images here'}
                                     </p>
                                     <p className="text-xs text-gray-500 mb-3">
-                                        {lang === 'ar' ? 'أو انقر لتصفح الملفات' : 'or click to browse from device'}
+                                        {lang === 'ar' ? 'أو انقر لتصفح الملفات' : 'or click to browse'}
                                     </p>
                                     <span className="px-3 py-1 bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] text-[10px] font-bold uppercase tracking-widest rounded-full">
-                                        {lang === 'ar' ? '⚡ ضغط تلقائي WebP · جودة عالية' : '⚡ Auto WebP Compression · High Quality'}
+                                        ⚡ {lang === 'ar' ? 'ضغط تلقائي WebP · جودة عالية' : 'Auto WebP Compression · High Quality'}
                                     </span>
                                 </form>
 
-                                {/* Progress Indicator */}
                                 {uploading && (
                                     <div className="mt-6 p-4 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center gap-3 text-sm text-[#D4AF37]">
                                         <FaSpinner className="animate-spin" />
-                                        {lang === 'ar' ? 'جاري رفع الصور ومزامنتها...' : 'Uploading and syncing images...'}
+                                        {lang === 'ar' ? 'جاري الرفع والضغط...' : 'Uploading & compressing...'}
                                     </div>
                                 )}
                             </div>
@@ -445,65 +461,54 @@ const AdminDashboard = ({ lang, setLang }) => {
                                 <h3 className="text-sm font-bold text-red-500 mb-3">
                                     {lang === 'ar' ? 'منطقة الخطورة' : 'Danger Zone'}
                                 </h3>
-                                <button
-                                    onClick={() => handleDeleteAlbum(activeAlbumName)}
-                                    className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-colors duration-300 flex items-center justify-center gap-2"
-                                >
+                                <button onClick={() => handleDeleteAlbum(activeAlbumName)}
+                                    className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2">
                                     <FaTrash />
                                     {lang === 'ar' ? 'حذف هذا الألبوم بالكامل' : 'Delete Entire Category'}
                                 </button>
                             </div>
                         </div>
 
-                        {/* Right Column: Album Images */}
+                        {/* Images Grid Column */}
                         <div className="lg:col-span-2 space-y-6">
                             <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-xl">
                                 <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-3">
                                     <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                                        {lang === 'ar' ? 'الصور الحالية بالقسم' : 'Current Category Images'}
+                                        {lang === 'ar' ? 'الصور الحالية' : 'Current Images'}
                                         <span className="px-2.5 py-0.5 text-xs bg-[#D4AF37]/20 border border-[#D4AF37] text-[#D4AF37] rounded-full">
-                                            {activeAlbum ? activeAlbum.images.length : 0}
+                                            {activeAlbum?.images?.length || 0}
                                         </span>
                                     </h2>
                                 </div>
 
-                                {!activeAlbum || activeAlbum.images.length === 0 ? (
-                                    <div className="h-64 border border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center gap-3 text-gray-500">
-                                        <p>{lang === 'ar' ? 'هذا القسم فارغ حالياً، قم برفع صور لتظهر هنا.' : 'This category is empty. Upload photos to start.'}</p>
+                                {!activeAlbum?.images?.length ? (
+                                    <div className="h-64 border border-dashed border-white/10 rounded-xl flex items-center justify-center text-gray-500 text-sm">
+                                        {lang === 'ar' ? 'القسم فارغ. ارفع صوراً لتظهر هنا.' : 'Category is empty. Upload images to start.'}
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 max-h-[650px] overflow-y-auto pr-2 custom-scrollbar">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 max-h-[650px] overflow-y-auto pr-2">
                                         {activeAlbum.images.map((img, idx) => (
                                             <div key={idx} className="relative group rounded-xl border border-white/10 overflow-hidden bg-black/40">
-                                                
-                                                {/* Image Container */}
                                                 <div className="aspect-[3/4] overflow-hidden bg-zinc-900 flex items-center justify-center">
-                                                    <img 
-                                                        src={`/The Gallery/${encodeURIComponent(activeAlbumName)}/${encodeURIComponent(img)}`} 
-                                                        alt={`Category preview ${idx}`} 
+                                                    <img
+                                                        src={getImgSrc(img)}
+                                                        alt={`Image ${idx}`}
                                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                                         loading="lazy"
                                                     />
                                                 </div>
-
-                                                {/* Hover Overlay Delete */}
                                                 <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-4 z-10">
                                                     <p className="text-[10px] text-gray-400 break-all line-clamp-2 uppercase tracking-wide">
-                                                        {img}
+                                                        {getImgName(img)}
                                                     </p>
-                                                    
-                                                    <button 
-                                                        onClick={() => handleDeleteImage(img)}
-                                                        className="w-full py-2 bg-red-600/90 hover:bg-red-700 text-white rounded-lg flex items-center justify-center gap-2 text-xs font-bold transition-colors duration-300"
-                                                    >
+                                                    <button onClick={() => handleDeleteImage(img)}
+                                                        className="w-full py-2 bg-red-600/90 hover:bg-red-700 text-white rounded-lg flex items-center justify-center gap-2 text-xs font-bold transition-colors">
                                                         <FaTrash />
                                                         {lang === 'ar' ? 'حذف الصورة' : 'Delete'}
                                                     </button>
                                                 </div>
-
-                                                {/* Text Overlay */}
-                                                <div className="absolute bottom-0 left-0 w-full p-2 bg-black/65 backdrop-blur-sm text-[9px] text-gray-400 truncate text-center border-t border-white/5 pointer-events-none group-hover:opacity-0 transition-opacity duration-200">
-                                                    {img}
+                                                <div className="absolute bottom-0 left-0 w-full p-2 bg-black/65 backdrop-blur-sm text-[9px] text-gray-400 truncate text-center border-t border-white/5 pointer-events-none group-hover:opacity-0 transition-opacity">
+                                                    {getImgName(img)}
                                                 </div>
                                             </div>
                                         ))}

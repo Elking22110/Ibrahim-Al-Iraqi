@@ -8,10 +8,13 @@ import Loader from './components/Loader';
 import LuxuryBackground from './components/LuxuryBackground';
 import AdminDashboard from './components/AdminDashboard';
 import { content } from './content';
+// Static fallback for when the API is unavailable
+import { galleryAlbums as staticAlbums } from './galleryConfig';
 
 // Lazy Load Section Components for Performance
 const ImageShowcase = React.lazy(() => import('./components/ImageShowcase'));
 const TailoringSection = React.lazy(() => import('./components/TailoringSection'));
+const GallerySection = React.lazy(() => import('./components/GallerySection'));
 const CollectionGrid = React.lazy(() => import('./components/CollectionGrid'));
 const Footer = React.lazy(() => import('./components/Footer'));
 const ContactSection = React.lazy(() => import('./components/ContactSection'));
@@ -21,6 +24,7 @@ function App() {
     const [isLoading, setIsLoading] = useState(true);
     const [lang, setLang] = useState('ar');
     const [currentPath, setCurrentPath] = useState(window.location.pathname);
+    const [galleryAlbums, setGalleryAlbums] = useState(staticAlbums);
     const t = content[lang];
 
     useEffect(() => {
@@ -29,6 +33,20 @@ function App() {
         };
         window.addEventListener('popstate', handleLocationChange);
         return () => window.removeEventListener('popstate', handleLocationChange);
+    }, []);
+
+    // Fetch gallery albums from API (works both locally via Vite middleware and on Vercel)
+    useEffect(() => {
+        fetch('/api/gallery')
+            .then(r => r.json())
+            .then(data => {
+                if (data.albums && data.albums.length > 0) {
+                    setGalleryAlbums(data.albums);
+                }
+            })
+            .catch(() => {
+                // Silently fall back to static config if API is unavailable
+            });
     }, []);
 
     useEffect(() => {
@@ -83,14 +101,15 @@ function App() {
                                     key="content"
                                     initial={{ opacity: 0, scale: 0.98, filter: 'blur(10px)' }}
                                     animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                                    transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }} // Custom bezier for smooth luxury feel
+                                    transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
                                     className="relative z-10"
                                 >
                                     <Suspense fallback={null}>
                                         <ModernHero t={t.hero} lang={lang} />
                                         <TailoringSection t={t.tailoring} lang={lang} />
                                         <ImageShowcase t={t.imageShowcase} lang={lang} />
-                                        <CollectionGrid t={t.collection} lang={lang} />
+                                        <GallerySection t={t.collection} lang={lang} albums={galleryAlbums} />
+                                        <CollectionGrid t={t.collection} lang={lang} albums={galleryAlbums} />
                                         <ContactSection t={t.contact} lang={lang} />
                                         <Footer t={t.footer} lang={lang} />
                                     </Suspense>
@@ -105,3 +124,4 @@ function App() {
 }
 
 export default App;
+

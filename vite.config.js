@@ -196,6 +196,29 @@ export default defineConfig({
                             }
                         });
 
+                    } else if (req.url === '/api/auth' && req.method === 'POST') {
+                        let body = '';
+                        req.on('data', chunk => { body += chunk; });
+                        req.on('end', () => {
+                            try {
+                                const { password } = JSON.parse(body);
+                                // In dev mode: accept any password if ADMIN_PASSWORD is not set,
+                                // or validate against the env var
+                                const adminPw = process.env.ADMIN_PASSWORD;
+                                const ok = !adminPw || password === adminPw;
+                                res.setHeader('Content-Type', 'application/json');
+                                if (ok) {
+                                    res.end(JSON.stringify({ success: true }));
+                                } else {
+                                    res.statusCode = 401;
+                                    res.end(JSON.stringify({ error: 'Invalid password' }));
+                                }
+                            } catch (err) {
+                                res.statusCode = 400;
+                                res.end(JSON.stringify({ error: err.message }));
+                            }
+                        });
+
                     } else {
                         next();
                     }

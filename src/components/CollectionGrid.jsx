@@ -1,19 +1,25 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ScrollFloat from './ScrollFloat';
-import { galleryAlbums } from '../galleryConfig';
 
-// Extract and flat all images with their respective album name path
-const allImages = galleryAlbums.flatMap(album => 
-    album.images.map(img => `${encodeURIComponent(album.name)}/${encodeURIComponent(img)}`)
-);
+// Helper: get image src supporting both Cloudinary objects and local paths
+const getImgSrc = (img) => {
+    if (typeof img === 'object' && img.url) return img.url;
+    return `/The Gallery/${img}`;
+};
 
-// Split images: Top 4 for initial view, rest for expandable grid
-const featuredImages = allImages.slice(0, 4);
-const hiddenImages = allImages.slice(4);
-
-const CollectionGrid = ({ t, lang }) => {
+const CollectionGrid = ({ t, lang, albums = [] }) => {
     const [isExpanded, setIsExpanded] = useState(false);
+
+    // Flatten all images from all albums
+    const allImages = albums.flatMap(album =>
+        album.images.map(img =>
+            typeof img === 'object' ? img : `${encodeURIComponent(album.name)}/${encodeURIComponent(img)}`
+        )
+    );
+    const featuredImages = allImages.slice(0, 4);
+    const hiddenImages = allImages.slice(4);
+
 
     return (
         <section id="collection" className={`w-full py-32 ${lang === 'ar' ? 'font-cairo' : ''}`}>
@@ -56,9 +62,9 @@ const CollectionGrid = ({ t, lang }) => {
                             transition={{ duration: 1.2, ease: "easeInOut" }}
                         >
                             <img
-                                src={`/The Gallery/${img}`}
+                                src={getImgSrc(img)}
                                 alt={`Featured ${index + 1}`}
-                                loading="lazy" // Defer loading
+                                loading="lazy"
                                 className="w-full h-full object-cover grayscale-0 md:grayscale md:group-hover:grayscale-0 transition-all duration-700"
                             />
                             <div className="absolute inset-0 bg-transparent md:bg-black/60 md:group-hover:bg-transparent transition-colors duration-500"></div>
@@ -108,7 +114,7 @@ const CollectionGrid = ({ t, lang }) => {
                                         className="break-inside-avoid relative group overflow-hidden rounded-sm"
                                     >
                                         <img
-                                            src={`/The Gallery/${img}`}
+                                            src={getImgSrc(img)}
                                             alt={`Gallery ${index + 5}`}
                                             className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700"
                                             loading="lazy"
