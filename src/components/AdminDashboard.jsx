@@ -17,6 +17,7 @@ const AdminDashboard = ({ lang, setLang }) => {
     const [albums, setAlbums] = useState([]);
     const [catalog, setCatalog] = useState({});
     const [activeAlbumName, setActiveAlbumName] = useState(null);
+    const [activeSuitId, setActiveSuitId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [statusMessage, setStatusMessage] = useState('');
@@ -59,10 +60,12 @@ const AdminDashboard = ({ lang, setLang }) => {
         const filename = getImgName(img);
         try {
             setLoading(true);
+            const body = { album: activeAlbumName, filename };
+            if (activeSuitId) body.suitId = activeSuitId;
             const res = await fetch('/api/set-cover', {
                 method: 'POST',
                 headers: authHeaders,
-                body: JSON.stringify({ album: activeAlbumName, filename })
+                body: JSON.stringify(body)
             });
             const result = await res.json();
             if (result.success) {
@@ -238,7 +241,7 @@ const AdminDashboard = ({ lang, setLang }) => {
         return {
             id: realAlbum ? realAlbum.name : cat.id,
             displayName: cat.defaultName,
-            images: realAlbum ? realAlbum.images : [],
+            suits: realAlbum ? realAlbum.suits : [],
             isCore: true
         };
     });
@@ -254,7 +257,7 @@ const AdminDashboard = ({ lang, setLang }) => {
     }).map(a => ({
         id: a.name,
         displayName: getAlbumDisplayName(a.name, lang),
-        images: a.images,
+        suits: a.suits || [],
         isCore: false
     }));
 
@@ -406,9 +409,12 @@ const AdminDashboard = ({ lang, setLang }) => {
             }
             try {
                 const base64Data = await convertToBase64(file);
+                const body = { album: activeAlbumName, name: file.name, data: base64Data };
+                // If inside a suit, upload to that suit's subfolder
+                if (activeSuitId) body.suitId = activeSuitId;
                 const res = await fetch('/api/upload', {
                     method: 'POST', headers: authHeaders,
-                    body: JSON.stringify({ album: activeAlbumName, name: file.name, data: base64Data })
+                    body: JSON.stringify(body)
                 });
                 const result = await res.json();
                 if (result.success) {
@@ -436,9 +442,12 @@ const AdminDashboard = ({ lang, setLang }) => {
             : `Delete image "${filename}"?`;
         if (!window.confirm(confirmMsg)) return;
         try {
+            // If in a suit subfolder, include the suitId so the server resolves the correct path
+            const body = { album: activeAlbumName, name: filename };
+            if (activeSuitId) body.suitId = activeSuitId;
             const res = await fetch('/api/delete', {
                 method: 'POST', headers: authHeaders,
-                body: JSON.stringify({ album: activeAlbumName, name: filename })
+                body: JSON.stringify(body)
             });
             const result = await res.json();
             if (result.success) {
@@ -448,6 +457,64 @@ const AdminDashboard = ({ lang, setLang }) => {
         } catch {
             setStatusMessage(lang === 'ar' ? '❌ فشل حذف الصورة' : '❌ Failed to delete image');
         }
+    };
+
+    // ─── Suit Create / Delete ──────────────────────────────────────
+    const handleCreateSuit = async () => {
+        const suitNameAr = window.prompt(
+            lang === 'ar' ? 'أدخل اسم البدلة الجديدة بالعربية:' : 'Enter new suit name in Arabic:'
+        );
+        if (!suitNameAr?.trim()) return;
+        const suitNameEn = window.prompt(
+            lang === 'ar' ? 'أدخل اسم البدلة بالإنجليزية:' : 'Enter suit name in English:'
+        );
+        if (!suitNameEn?.trim()) return;
+        const suitId = `suit_${Date.now()}`;
+        try {
+            setLoading(true);
+            // Save metadata immediately via update-product
+            const res = await fetch('/api/update-product', {
+                method: 'POST', headers: authHeaders,
+                body: JSON.stringify({
+                    filename: suitId,
+                    metadata: { nameAr: suitNameAr.trim(), nameEn: suitNameEn.trim(), descAr: '', descEn: '', priceAr: '', priceEn: '' }
+                })
+            });
+            const result = await res.json();
+            if (result.success) {
+                setStatusMessage(lang === 'ar' ? `✅ تم إنشاء البدلة "${suitNameAr}"` : `✅ Suit "${suitNameEn}" created`);
+                // Automatically open that suit's management page
+                setActiveSuitId(suitId);
+                await fetchGallery();
+            } else throw new Error(result.error);
+        } catch (err) {
+            setStatusMessage(lang === 'ar' ? '❌ فشل إنشاء البدلة' : '❌ Failed to create suit');
+        } finally { setLoading(false); }
+    };
+
+    const handleDeleteSuit = async (suit) => {
+        const displayName = lang === 'ar' ? (suit.nameAr || suit.id) : (suit.nameEn || suit.id);
+        const msg = lang === 'ar'
+            ? `تحذير: هل أنت متأكد من حذف البدلة "${displayName}" بالكامل مع جميع صورها؟`
+            : `WARNING: Delete suit "${displayName}" and all its images?`;
+        if (!window.confirm(msg)) return;
+        try {
+            setLoading(true);
+            // Delete the suit's folder on Cloudinary (which is a subfolder of the category)
+            const subfolderPath = `${activeAlbumName}/${suit.id}`;
+            const res = await fetch('/api/delete-album', {
+                method: 'POST', headers: authHeaders,
+                body: JSON.stringify({ name: subfolderPath })
+            });
+            const result = await res.json();
+            if (result.success || result.error?.includes('not found')) {
+                setStatusMessage(lang === 'ar' ? '✅ تم حذف البدلة بنجاح' : '✅ Suit deleted successfully');
+                if (activeSuitId === suit.id) setActiveSuitId(null);
+                await fetchGallery();
+            } else throw new Error(result.error);
+        } catch {
+            setStatusMessage(lang === 'ar' ? '❌ فشل حذف البدلة' : '❌ Failed to delete suit');
+        } finally { setLoading(false); }
     };
 
     // ─── Drag & Drop ───────────────────────────────────────────────
@@ -553,20 +620,30 @@ const AdminDashboard = ({ lang, setLang }) => {
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 mb-12 border-b border-white/10 pb-8">
                 <div className="flex items-center gap-4">
                     <button
-                        onClick={activeAlbumName ? () => setActiveAlbumName(null) : goHome}
+                        onClick={() => {
+                            if (activeSuitId) { setActiveSuitId(null); }
+                            else if (activeAlbumName) { setActiveAlbumName(null); }
+                            else { goHome(); }
+                        }}
                         className="p-3 bg-white/5 border border-white/10 hover:border-[#D4AF37] hover:text-[#D4AF37] rounded-full transition-all duration-300 text-sm"
-                        title={activeAlbumName ? (lang === 'ar' ? 'رجوع للأقسام' : 'Back to Categories') : (lang === 'ar' ? 'رجوع للموقع' : 'Back to Site')}
+                        title={activeSuitId ? (lang === 'ar' ? 'رجوع لقائمة البدلات' : 'Back to Suits') : activeAlbumName ? (lang === 'ar' ? 'رجوع للأقسام' : 'Back to Categories') : (lang === 'ar' ? 'رجوع للموقع' : 'Back to Site')}
                     >
                         <FaArrowLeft />
                     </button>
                     <div>
                         <h1 className="text-3xl font-bold tracking-wider text-[#D4AF37]">
-                            {activeAlbumName
-                                ? (lang === 'ar' ? `قسم: ${getAlbumDisplayName(activeAlbumName, lang)}` : `Category: ${getAlbumDisplayName(activeAlbumName, lang)}`)
-                                : (lang === 'ar' ? 'أقسام معرض الصور' : 'Gallery Categories')}
+                            {activeSuitId
+                                ? (() => { const s = activeAlbum?.suits?.find(s => s.id === activeSuitId); return lang === 'ar' ? `بدلة: ${s?.nameAr || activeSuitId}` : `Suit: ${s?.nameEn || activeSuitId}`; })()
+                                : activeAlbumName
+                                    ? (lang === 'ar' ? `قسم: ${getAlbumDisplayName(activeAlbumName, lang)}` : `Category: ${getAlbumDisplayName(activeAlbumName, lang)}`)
+                                    : (lang === 'ar' ? 'أقسام معرض الصور' : 'Gallery Categories')}
                         </h1>
                         <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">
-                            {lang === 'ar' ? 'إدارة الألبومات والصور' : 'Manage albums & images'}
+                            {activeSuitId
+                                ? (lang === 'ar' ? 'إدارة صور وتفاصيل البدلة' : 'Manage suit images & details')
+                                : activeAlbumName
+                                    ? (lang === 'ar' ? 'إدارة البدلات في هذا القسم' : 'Manage suits in this category')
+                                    : (lang === 'ar' ? 'إدارة أقسام المعرض' : 'Manage gallery categories')}
                         </p>
                     </div>
                 </div>
@@ -622,7 +699,7 @@ const AdminDashboard = ({ lang, setLang }) => {
                                                 <FaFolder />
                                             </div>
                                             <span className="px-3 py-1 bg-white/5 border border-white/10 text-xs rounded-full font-bold">
-                                                {album.images.length} {lang === 'ar' ? 'صورة' : 'photos'}
+                                                {album.suits.length} {lang === 'ar' ? 'بدلة' : 'suits'}
                                             </span>
                                         </div>
                                         <h3 className="text-xl font-bold text-white group-hover:text-[#D4AF37] transition-colors truncate">
@@ -630,9 +707,9 @@ const AdminDashboard = ({ lang, setLang }) => {
                                         </h3>
                                     </div>
                                     <div className="flex gap-3 mt-8 border-t border-white/5 pt-4">
-                                        <button onClick={() => setActiveAlbumName(album.id)}
+                                        <button onClick={() => { setActiveAlbumName(album.id); setActiveSuitId(null); }}
                                             className="flex-1 py-2.5 bg-white/5 hover:bg-[#D4AF37] text-white hover:text-black border border-white/10 hover:border-[#D4AF37] rounded-lg text-xs font-bold transition-all duration-300">
-                                            {lang === 'ar' ? 'دخول وإدارة الصور' : 'Manage Images'}
+                                            {lang === 'ar' ? 'دخول وإدارة البدلات' : 'Manage Suits'}
                                         </button>
                                         {!album.isCore && (
                                             <button onClick={() => handleDeleteAlbum(album.id)}
@@ -647,173 +724,250 @@ const AdminDashboard = ({ lang, setLang }) => {
                         </div>
                     </div>
 
-                ) : (
+                ) : !activeSuitId ? (
 
-                    /* ── Album Detail View ── */
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                        {/* Upload Column */}
-                        <div className="lg:col-span-1 space-y-6">
-                            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-xl">
-                                <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-3">
-                                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                                        <FaUpload className="text-[#D4AF37]" />
-                                        {lang === 'ar' ? 'رفع صور' : 'Upload Images'}
-                                    </h2>
-                                </div>
-
-                                <form
-                                    onDragEnter={handleDrag} onDragOver={handleDrag}
-                                    onDragLeave={handleDrag} onDrop={handleDrop}
-                                    onSubmit={e => e.preventDefault()}
-                                    className={`w-full h-64 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all duration-300 ${dragActive ? 'border-[#D4AF37] bg-[#D4AF37]/5' : 'border-white/20 hover:border-white/40 hover:bg-white/5'}`}
-                                    onClick={() => document.getElementById('file-upload-input').click()}
-                                >
-                                    <input id="file-upload-input" type="file" multiple accept="image/*" className="hidden"
-                                        onChange={e => handleFileUpload(e.target.files)} />
-                                    <div className="p-4 bg-white/5 border border-white/10 rounded-full mb-4 text-[#D4AF37]">
-                                        <FaUpload className="text-2xl" />
-                                    </div>
-                                    <p className="text-sm font-semibold text-white mb-1">
-                                        {lang === 'ar' ? 'اسحب الصور وأفلتها هنا' : 'Drag & Drop images here'}
-                                    </p>
-                                    <p className="text-xs text-gray-500 mb-3">
-                                        {lang === 'ar' ? 'أو انقر لتصفح الملفات' : 'or click to browse'}
-                                    </p>
-                                    <span className="px-3 py-1 bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] text-[10px] font-bold uppercase tracking-widest rounded-full">
-                                        ⚡ {lang === 'ar' ? 'ضغط تلقائي WebP · جودة عالية' : 'Auto WebP Compression · High Quality'}
-                                    </span>
-                                </form>
-
-                                {uploading && (
-                                    <div className="mt-6 p-4 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center gap-3 text-sm text-[#D4AF37]">
-                                        <FaSpinner className="animate-spin" />
-                                        {lang === 'ar' ? 'جاري الرفع والضغط...' : 'Uploading & compressing...'}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Danger Zone */}
-                            <div className="bg-red-950/10 border border-red-500/20 rounded-2xl p-6">
-                                <h3 className="text-sm font-bold text-red-500 mb-3">
-                                    {lang === 'ar' ? 'منطقة الخطورة' : 'Danger Zone'}
-                                </h3>
-                                <button onClick={() => handleClearAlbum(activeAlbumName)}
-                                    className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2">
-                                    <FaTrash />
-                                    {lang === 'ar' ? 'إفراغ هذا القسم من الصور' : 'Clear Category Images'}
-                                </button>
-                            </div>
+                    /* ── Level 1: Suits List View ── */
+                    <div className="space-y-8">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                                <FaImages className="text-[#D4AF37]" />
+                                {lang === 'ar' ? `البدلات في قسم ${getAlbumDisplayName(activeAlbumName, lang)}` : `Suits in ${getAlbumDisplayName(activeAlbumName, lang)}`}
+                                <span className="px-2.5 py-0.5 text-xs bg-[#D4AF37]/20 border border-[#D4AF37] text-[#D4AF37] rounded-full">
+                                    {activeAlbum?.suits?.length || 0}
+                                </span>
+                            </h2>
+                            <button onClick={handleCreateSuit}
+                                className="px-6 py-3 bg-[#D4AF37] text-black hover:bg-[#F2E8C9] rounded-full flex items-center gap-2 text-sm font-black transition-all duration-300 shadow-lg">
+                                <FaFolderPlus />
+                                {lang === 'ar' ? 'إضافة بدلة جديدة' : 'New Suit'}
+                            </button>
                         </div>
 
-                        {/* Images Grid Column */}
-                        <div className="lg:col-span-2 space-y-6">
-                            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-xl">
-                                <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-3">
-                                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                                        {lang === 'ar' ? 'الصور الحالية' : 'Current Images'}
-                                        <span className="px-2.5 py-0.5 text-xs bg-[#D4AF37]/20 border border-[#D4AF37] text-[#D4AF37] rounded-full">
-                                            {activeAlbum?.images?.length || 0}
-                                        </span>
-                                    </h2>
-                                </div>
-
-                                {!activeAlbum?.images?.length ? (
-                                    <div className="h-64 border border-dashed border-white/10 rounded-xl flex items-center justify-center text-gray-500 text-sm">
-                                        {lang === 'ar' ? 'القسم فارغ. ارفع صوراً لتظهر هنا.' : 'Category is empty. Upload images to start.'}
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 max-h-[650px] overflow-y-auto pr-2">
-                                        {activeAlbum.images.map((img, idx) => (
-                                            <div key={idx} className="relative group rounded-xl border border-white/10 overflow-hidden bg-black/40">
-                                                {/* Cover Badge */}
-                                                {isCoverImage(img) && (
-                                                    <div className="absolute top-2.5 right-2.5 bg-[#D4AF37] text-black text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded shadow-lg z-20 flex items-center gap-1">
-                                                        <FaStar className="text-[9px]" />
-                                                        {lang === 'ar' ? 'الغلاف' : 'Cover'}
+                        {!activeAlbum?.suits?.length ? (
+                            <div className="h-64 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-4 text-gray-500">
+                                <FaImages className="text-4xl text-gray-700" />
+                                <p className="text-sm">{lang === 'ar' ? 'لا توجد بدلات في هذا القسم بعد. أضف بدلة جديدة للبدء!' : 'No suits yet. Add a new suit to get started!'}</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {activeAlbum.suits.map((suit, idx) => {
+                                    const displayName = lang === 'ar' ? (suit.nameAr || suit.id) : (suit.nameEn || suit.id);
+                                    const displayPrice = lang === 'ar' ? suit.priceAr : suit.priceEn;
+                                    const coverSrc = suit.coverImage?.url || '';
+                                    return (
+                                        <div key={suit.id} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-[#D4AF37]/50 transition-all duration-300 group">
+                                            {/* Cover Thumbnail */}
+                                            <div className="aspect-[3/2] bg-black/40 overflow-hidden">
+                                                {coverSrc ? (
+                                                    <img src={coverSrc} alt={displayName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-gray-600">
+                                                        <FaImages className="text-4xl" />
                                                     </div>
                                                 )}
-
-                                                <div className="aspect-[3/4] overflow-hidden bg-zinc-900 flex items-center justify-center">
-                                                    <img
-                                                        src={getImgSrc(img)}
-                                                        alt={`Image ${idx}`}
-                                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                                        loading="lazy"
-                                                    />
+                                            </div>
+                                            {/* Suit Info */}
+                                            <div className="p-5 space-y-3">
+                                                <div className="flex justify-between items-start gap-2">
+                                                    <h3 className="text-base font-bold text-white truncate flex-1">{displayName}</h3>
+                                                    {displayPrice && <span className="text-[#D4AF37] text-sm font-bold whitespace-nowrap">{displayPrice}</span>}
                                                 </div>
-                                                <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-4 z-10">
-                                                    <p className="text-[10px] text-gray-400 break-all line-clamp-2 uppercase tracking-wide">
-                                                        {getImgName(img)}
-                                                    </p>
-                                                    
-                                                    <div className="space-y-2 w-full">
-                                                        {!isCoverImage(img) && (
-                                                            <button onClick={() => handleSetCover(img)}
-                                                                className="w-full py-1.5 bg-white/5 hover:bg-[#D4AF37] text-white hover:text-black border border-white/10 hover:border-[#D4AF37] rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold transition-all duration-300">
-                                                                <FaRegStar />
-                                                                {lang === 'ar' ? 'تعيين كغلاف' : 'Set as Cover'}
-                                                            </button>
-                                                        )}
-
-                                                        <button onClick={() => {
-                                                             const filename = getImgName(img);
-                                                             const key = filename.toLowerCase().replace(/\.[^/.]+$/, '').trim();
-                                                             const existing = catalog[key] || {};
-                                                             setEditingImage({
-                                                                 filename,
-                                                                 nameAr: existing.ar?.name || '',
-                                                                 nameEn: existing.en?.name || '',
-                                                                 descAr: existing.ar?.desc || '',
-                                                                 descEn: existing.en?.desc || '',
-                                                                 priceAr: existing.ar?.price || '',
-                                                                 priceEn: existing.en?.price || ''
-                                                             });
-                                                         }}
-                                                             className="w-full py-1.5 bg-white/5 hover:bg-[#D4AF37] text-white hover:text-black border border-white/10 hover:border-[#D4AF37] rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold transition-all duration-300">
-                                                             <FaEdit />
-                                                             {lang === 'ar' ? 'تعديل التفاصيل والسعر' : 'Edit Specs & Price'}
-                                                         </button>
-                                                        
-                                                        {/* Move Category Select Dropdown */}
-                                                        <select
-                                                            onChange={(e) => {
-                                                                if (e.target.value) {
-                                                                    handleMoveImage(img, e.target.value);
-                                                                    e.target.value = ''; // Reset
-                                                                }
-                                                            }}
-                                                            className="w-full py-1.5 px-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-lg text-xs font-bold transition-all duration-300 cursor-pointer appearance-none text-center outline-none"
-                                                        >
-                                                            <option value="" className="bg-zinc-950 text-gray-400">
-                                                                {lang === 'ar' ? '📦 نقل إلى قسم...' : '📦 Move to...'}
-                                                            </option>
-                                                            {dashboardAlbums
-                                                                .filter(album => album.id !== activeAlbumName)
-                                                                .map(album => (
-                                                                    <option key={album.id} value={album.id} className="bg-zinc-950 text-white">
-                                                                        {album.displayName}
-                                                                    </option>
-                                                                ))}
-                                                        </select>
-
-                                                        <button onClick={() => handleDeleteImage(img)}
-                                                            className="w-full py-1.5 bg-red-600/95 hover:bg-red-700 text-white rounded-lg flex items-center justify-center gap-2 text-xs font-bold transition-colors">
-                                                            <FaTrash />
-                                                            {lang === 'ar' ? 'حذف الصورة' : 'Delete'}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div className="absolute bottom-0 left-0 w-full p-2 bg-black/65 backdrop-blur-sm text-[9px] text-gray-400 truncate text-center border-t border-white/5 pointer-events-none group-hover:opacity-0 transition-opacity">
-                                                    {getImgName(img)}
+                                                <p className="text-xs text-gray-500">
+                                                    {suit.images.length} {lang === 'ar' ? 'صورة' : 'images'}
+                                                    {suit.isLegacy && <span className="ml-2 px-1.5 py-0.5 bg-yellow-900/30 text-yellow-500 rounded text-[9px]">Legacy</span>}
+                                                </p>
+                                                <div className="flex gap-2 pt-2 border-t border-white/5">
+                                                    <button
+                                                        onClick={() => {
+                                                            setActiveSuitId(suit.id);
+                                                            // Pre-fill editing form with current metadata
+                                                            setEditingImage({
+                                                                filename: suit.id,
+                                                                nameAr: suit.nameAr || '',
+                                                                nameEn: suit.nameEn || '',
+                                                                descAr: suit.descAr || '',
+                                                                descEn: suit.descEn || '',
+                                                                priceAr: suit.priceAr || '',
+                                                                priceEn: suit.priceEn || ''
+                                                            });
+                                                        }}
+                                                        className="flex-1 py-2 bg-white/5 hover:bg-[#D4AF37] text-white hover:text-black border border-white/10 hover:border-[#D4AF37] rounded-lg text-xs font-bold transition-all duration-300">
+                                                        {lang === 'ar' ? 'إدارة الصور والتفاصيل' : 'Manage'}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteSuit(suit)}
+                                                        className="p-2 bg-red-950/20 hover:bg-red-600 border border-red-500/20 rounded-lg text-red-500 hover:text-white transition-colors"
+                                                        title={lang === 'ar' ? 'حذف البدلة' : 'Delete Suit'}>
+                                                        <FaTrash />
+                                                    </button>
                                                 </div>
                                             </div>
-                                        ))}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+
+                ) : (() => {
+                    // ── Level 2: Suit Detail / Image Manager ──
+                    const currentSuit = activeAlbum?.suits?.find(s => s.id === activeSuitId);
+                    const suitImages = currentSuit?.images || [];
+
+                    return (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                            {/* Left Column: Upload + Metadata Edit */}
+                            <div className="lg:col-span-1 space-y-6">
+                                {/* Metadata Edit Form */}
+                                {editingImage && editingImage.filename === activeSuitId && (
+                                    <div className="bg-white/5 border border-[#D4AF37]/30 rounded-2xl p-6 space-y-5">
+                                        <h3 className="text-base font-bold text-[#D4AF37] flex items-center gap-2">
+                                            <FaEdit />
+                                            {lang === 'ar' ? 'تعديل تفاصيل البدلة' : 'Edit Suit Details'}
+                                        </h3>
+                                        <form onSubmit={handleUpdateProduct} className="space-y-4">
+                                            <div dir="rtl" className="space-y-3">
+                                                <h4 className="text-xs text-gray-400 uppercase tracking-widest">العربية</h4>
+                                                <input type="text" value={editingImage.nameAr}
+                                                    onChange={e => setEditingImage({ ...editingImage, nameAr: e.target.value })}
+                                                    className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:border-[#D4AF37] focus:outline-none text-right"
+                                                    placeholder="اسم البدلة" />
+                                                <input type="text" value={editingImage.priceAr}
+                                                    onChange={e => setEditingImage({ ...editingImage, priceAr: e.target.value })}
+                                                    className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:border-[#D4AF37] focus:outline-none text-right"
+                                                    placeholder="السعر" />
+                                                <textarea rows={3} value={editingImage.descAr}
+                                                    onChange={e => setEditingImage({ ...editingImage, descAr: e.target.value })}
+                                                    className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:border-[#D4AF37] focus:outline-none resize-none text-right"
+                                                    placeholder="الوصف" />
+                                            </div>
+                                            <div dir="ltr" className="space-y-3">
+                                                <h4 className="text-xs text-gray-400 uppercase tracking-widest">English</h4>
+                                                <input type="text" value={editingImage.nameEn}
+                                                    onChange={e => setEditingImage({ ...editingImage, nameEn: e.target.value })}
+                                                    className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:border-[#D4AF37] focus:outline-none"
+                                                    placeholder="Suit Name" />
+                                                <input type="text" value={editingImage.priceEn}
+                                                    onChange={e => setEditingImage({ ...editingImage, priceEn: e.target.value })}
+                                                    className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:border-[#D4AF37] focus:outline-none"
+                                                    placeholder="Price" />
+                                                <textarea rows={3} value={editingImage.descEn}
+                                                    onChange={e => setEditingImage({ ...editingImage, descEn: e.target.value })}
+                                                    className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:border-[#D4AF37] focus:outline-none resize-none"
+                                                    placeholder="Description" />
+                                            </div>
+                                            <button type="submit"
+                                                className="w-full py-2.5 bg-[#D4AF37] hover:bg-[#F2E8C9] text-black rounded-lg text-sm font-black transition-all">
+                                                {lang === 'ar' ? 'حفظ التفاصيل' : 'Save Details'}
+                                            </button>
+                                        </form>
                                     </div>
                                 )}
+
+                                {/* Upload Dropzone */}
+                                <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                                    <h2 className="text-base font-bold text-white flex items-center gap-2 mb-4">
+                                        <FaUpload className="text-[#D4AF37]" />
+                                        {lang === 'ar' ? 'رفع صور للبدلة' : 'Upload Suit Images'}
+                                    </h2>
+                                    <form
+                                        onDragEnter={handleDrag} onDragOver={handleDrag}
+                                        onDragLeave={handleDrag} onDrop={handleDrop}
+                                        onSubmit={e => e.preventDefault()}
+                                        className={`w-full h-48 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-4 text-center cursor-pointer transition-all duration-300 ${dragActive ? 'border-[#D4AF37] bg-[#D4AF37]/5' : 'border-white/20 hover:border-white/40 hover:bg-white/5'}`}
+                                        onClick={() => document.getElementById('file-upload-input').click()}
+                                    >
+                                        <input id="file-upload-input" type="file" multiple accept="image/*" className="hidden"
+                                            onChange={e => handleFileUpload(e.target.files)} />
+                                        <FaUpload className="text-[#D4AF37] text-2xl mb-3" />
+                                        <p className="text-xs font-semibold text-white">
+                                            {lang === 'ar' ? 'اسحب الصور هنا أو انقر' : 'Drag & drop or click'}
+                                        </p>
+                                        <p className="text-[10px] text-gray-500 mt-1">WebP Auto-Compression</p>
+                                    </form>
+                                    {uploading && (
+                                        <div className="mt-4 p-3 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center gap-3 text-sm text-[#D4AF37]">
+                                            <FaSpinner className="animate-spin" />
+                                            {lang === 'ar' ? 'جاري الرفع...' : 'Uploading...'}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Danger Zone */}
+                                <div className="bg-red-950/10 border border-red-500/20 rounded-2xl p-5">
+                                    <h3 className="text-sm font-bold text-red-500 mb-3">{lang === 'ar' ? 'منطقة الخطورة' : 'Danger Zone'}</h3>
+                                    <button onClick={() => handleDeleteSuit(currentSuit)}
+                                        className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2">
+                                        <FaTrash />
+                                        {lang === 'ar' ? 'حذف هذه البدلة بالكامل' : 'Delete This Suit'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Right Column: Suit Images Grid */}
+                            <div className="lg:col-span-2 space-y-6">
+                                <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-xl">
+                                    <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-3">
+                                        <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                                            {lang === 'ar' ? 'صور البدلة' : 'Suit Images'}
+                                            <span className="px-2.5 py-0.5 text-xs bg-[#D4AF37]/20 border border-[#D4AF37] text-[#D4AF37] rounded-full">
+                                                {suitImages.length}
+                                            </span>
+                                        </h2>
+                                    </div>
+
+                                    {suitImages.length === 0 ? (
+                                        <div className="h-64 border border-dashed border-white/10 rounded-xl flex items-center justify-center text-gray-500 text-sm">
+                                            {lang === 'ar' ? 'لا توجد صور بعد. ارفع صوراً لهذه البدلة.' : 'No images yet. Upload images for this suit.'}
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 max-h-[650px] overflow-y-auto pr-2">
+                                            {suitImages.map((img, idx) => (
+                                                <div key={idx} className="relative group rounded-xl border border-white/10 overflow-hidden bg-black/40">
+                                                    {/* Cover Badge */}
+                                                    {img.filename?.toLowerCase().startsWith('cover') && (
+                                                        <div className="absolute top-2.5 right-2.5 bg-[#D4AF37] text-black text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded shadow-lg z-20 flex items-center gap-1">
+                                                            <FaStar className="text-[9px]" />
+                                                            {lang === 'ar' ? 'الغلاف' : 'Cover'}
+                                                        </div>
+                                                    )}
+                                                    <div className="aspect-[3/4] overflow-hidden bg-zinc-900">
+                                                        <img
+                                                            src={img.url || `/The Gallery/${encodeURIComponent(activeAlbumName)}/${encodeURIComponent(activeSuitId)}/${encodeURIComponent(img.filename || img)}`}
+                                                            alt={img.filename}
+                                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                            loading="lazy"
+                                                        />
+                                                    </div>
+                                                    <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3 z-10">
+                                                        <p className="text-[9px] text-gray-400 break-all line-clamp-2 uppercase tracking-wide">{img.filename}</p>
+                                                        <div className="space-y-2 w-full">
+                                                            {!img.filename?.toLowerCase().startsWith('cover') && (
+                                                                <button onClick={() => handleSetCover(img)}
+                                                                    className="w-full py-1.5 bg-white/5 hover:bg-[#D4AF37] text-white hover:text-black border border-white/10 rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold transition-all">
+                                                                    <FaRegStar />
+                                                                    {lang === 'ar' ? 'تعيين كغلاف' : 'Set as Cover'}
+                                                                </button>
+                                                            )}
+                                                            <button onClick={() => handleDeleteImage(img)}
+                                                                className="w-full py-1.5 bg-red-600/95 hover:bg-red-700 text-white rounded-lg flex items-center justify-center gap-2 text-xs font-bold transition-colors">
+                                                                <FaTrash />
+                                                                {lang === 'ar' ? 'حذف' : 'Delete'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div className="absolute bottom-0 left-0 w-full p-1.5 bg-black/65 text-[9px] text-gray-400 truncate text-center border-t border-white/5 pointer-events-none group-hover:opacity-0 transition-opacity">
+                                                        {img.filename}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    );
+                })()}
             </div>
 
             {/* Edit Metadata Modal */}

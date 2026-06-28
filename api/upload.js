@@ -14,13 +14,15 @@ export default async function handler(req, res) {
 
     try {
         const cloudinary = initCloudinary();
-        const { album, name, data } = req.body;
+        const { album, suitId, name, data } = req.body;
 
         if (!album || !name || !data) {
             return res.status(400).json({ error: 'album, name, and data are required' });
         }
 
-        const folderPath = `${GALLERY_FOLDER}/${album}`;
+        const folderPath = suitId 
+            ? `${GALLERY_FOLDER}/${album}/${suitId}` 
+            : `${GALLERY_FOLDER}/${album}`;
         const publicId = `${folderPath}/${name.replace(/\.[^/.]+$/, '')}`;
 
         // Upload with auto WebP conversion and quality optimization

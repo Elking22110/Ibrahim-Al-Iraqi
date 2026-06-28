@@ -11,13 +11,16 @@ export default async function handler(req, res) {
 
     try {
         const cloudinary = initCloudinary();
-        const { album, filename } = req.body;
+        const { album, suitId, filename } = req.body;
 
         if (!album || !filename) {
             return res.status(400).json({ error: 'album and filename are required' });
         }
 
-        const albumPath = `${GALLERY_FOLDER}/${album}`;
+        // If suitId is provided, work inside the suit's subfolder
+        const albumPath = suitId 
+            ? `${GALLERY_FOLDER}/${album}/${suitId}` 
+            : `${GALLERY_FOLDER}/${album}`;
 
         // 1. Look for existing cover in Cloudinary
         const resources = await cloudinary.api.resources({

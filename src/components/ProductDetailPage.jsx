@@ -4,10 +4,13 @@ import { FaArrowLeft, FaWhatsapp, FaCalendarAlt, FaChevronLeft, FaChevronRight }
 import { getProductMetadata } from '../productMetadata';
 
 // Helper: get image src supporting both Cloudinary objects and local paths
-const getImgSrc = (albumName, img) => {
+const getImgSrc = (category, suitId, img, isLegacy) => {
     if (!img) return '';
     if (typeof img === 'object' && img.url) return img.url;
-    return `/The Gallery/${encodeURIComponent(albumName)}/${encodeURIComponent(img)}`;
+    
+    // For local dev paths
+    const filename = typeof img === 'object' ? img.filename : img;
+    return `/The Gallery/${encodeURIComponent(category)}/${isLegacy ? '' : encodeURIComponent(suitId) + '/'}${encodeURIComponent(filename)}`;
 };
 
 const getImgName = (img) => {
@@ -17,6 +20,7 @@ const getImgName = (img) => {
 
 const ProductDetailPage = ({ albumName, imgName, albums, lang, onNavigate, productCatalog = {} }) => {
     const [isZoomed, setIsZoomed] = useState(false);
+    const [activeImageIdx, setActiveImageIdx] = useState(0);
 
     // Find active album in albums data
     const activeAlbum = albums.find(a => {
@@ -29,32 +33,44 @@ const ProductDetailPage = ({ albumName, imgName, albums, lang, onNavigate, produ
         return n === target;
     });
 
-    // Find specific image inside active album
-    const currentImg = activeAlbum?.images?.find(img => getImgName(img) === imgName);
-    
-    // Find next and previous images in album for navigation
-    const imgIndex = activeAlbum?.images ? activeAlbum.images.findIndex(img => getImgName(img) === imgName) : -1;
-    const prevImg = imgIndex > 0 ? activeAlbum.images[imgIndex - 1] : null;
-    const nextImg = activeAlbum?.images && imgIndex < activeAlbum.images.length - 1 ? activeAlbum.images[imgIndex + 1] : null;
+    // Find specific Suit inside active Category (imgName parameter here behaves as suitId)
+    const currentSuit = activeAlbum?.suits?.find(s => s.id === imgName);
+    const suitImages = currentSuit?.images || [];
 
-    const meta = getProductMetadata(activeAlbum?.name || albumName, imgName, lang, productCatalog);
+    // Find next and previous suits in category for navigation
+    const suitIndex = activeAlbum?.suits ? activeAlbum.suits.findIndex(s => s.id === imgName) : -1;
+    const prevSuit = suitIndex > 0 ? activeAlbum.suits[suitIndex - 1] : null;
+    const nextSuit = activeAlbum?.suits && suitIndex < activeAlbum.suits.length - 1 ? activeAlbum.suits[suitIndex + 1] : null;
+
+    // Get metadata details
+    const name = lang === 'ar' ? currentSuit?.nameAr : currentSuit?.nameEn;
+    const desc = lang === 'ar' ? currentSuit?.descAr : currentSuit?.descEn;
+    const price = lang === 'ar' ? currentSuit?.priceAr : currentSuit?.priceEn;
+
+    const fallbackMeta = (!name && !price) 
+        ? getProductMetadata(activeAlbum?.name || albumName, imgName, lang, productCatalog) 
+        : null;
+
+    const displayName = name || fallbackMeta?.name || imgName;
+    const displayPrice = price || fallbackMeta?.price || '';
+    const displayDesc = desc || fallbackMeta?.desc || '';
 
     const handleGoBack = () => {
         onNavigate(`/album/${albumName}`);
     };
 
-    const handleNavigateToImage = (targetImg) => {
-        if (!targetImg) return;
-        const targetName = getImgName(targetImg);
-        onNavigate(`/product/${albumName}/${targetName}`);
+    const handleNavigateToSuit = (targetSuit) => {
+        if (!targetSuit) return;
+        setActiveImageIdx(0);
+        onNavigate(`/product/${albumName}/${targetSuit.id}`);
     };
 
     // Pre-composed WhatsApp message template
     const getWhatsAppUrl = () => {
-        const phone = "201099307775"; // Ibrahim Al-Iraqi Contact Phone Number from content/dashboard
+        const phone = "201099307775"; // Ibrahim Al-Iraqi Contact Phone Number
         const text = lang === 'ar'
-            ? `مرحباً، أود الاستفسار وطلب تفصيل بدلة "${meta.name}" المعروضة على موقعكم الإلكتروني.`
-            : `Hello, I am interested in inquiring and ordering the custom suit "${meta.name}" from your website.`;
+            ? `مرحباً، أود الاستفسار وطلب تفصيل بدلة "${displayName}" المعروضة على موقعكم الإلكتروني.`
+            : `Hello, I am interested in inquiring and ordering the custom suit "${displayName}" from your website.`;
         return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
     };
 
@@ -90,7 +106,7 @@ const ProductDetailPage = ({ albumName, imgName, albums, lang, onNavigate, produ
         }
     ];
 
-    if (!currentImg) {
+    if (!currentSuit || suitImages.length === 0) {
         return (
             <div className="w-full min-h-screen bg-[#0A0A0A] flex flex-col justify-center items-center gap-4 text-[#f5f5f0]">
                 <p>{lang === 'ar' ? 'عذراً، لم يتم العثور على البدلة المطلوبة.' : 'Sorry, the requested suit was not found.'}</p>
@@ -100,6 +116,8 @@ const ProductDetailPage = ({ albumName, imgName, albums, lang, onNavigate, produ
             </div>
         );
     }
+
+    const currentImg = suitImages[activeImageIdx] || suitImages[0];
 
     return (
         <div className={`w-full min-h-screen bg-[#0A0A0A] text-[#f5f5f0] py-24 px-6 md:px-20 ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}>
@@ -119,12 +137,13 @@ const ProductDetailPage = ({ albumName, imgName, albums, lang, onNavigate, produ
                 {/* Main Split Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
                     
-                    {/* Left Column: Image with Nav buttons */}
+                    {/* Left Column: Image Gallery with thumbnails */}
                     <div className="lg:col-span-6 space-y-6">
                         <div className="relative group overflow-hidden rounded-sm border border-white/5 bg-[#111] aspect-[3/4]">
                             <motion.img
-                                src={getImgSrc(activeAlbum?.name || albumName, currentImg)}
-                                alt={meta.name}
+                                key={activeImageIdx}
+                                src={getImgSrc(activeAlbum.name, currentSuit.id, currentImg, currentSuit.isLegacy)}
+                                alt={displayName}
                                 animate={{ scale: isZoomed ? 1.3 : 1.0 }}
                                 transition={{ duration: 0.5 }}
                                 className="w-full h-full object-cover cursor-zoom-in"
@@ -139,19 +158,19 @@ const ProductDetailPage = ({ albumName, imgName, albums, lang, onNavigate, produ
                                 {lang === 'ar' ? 'انقر على الصورة للتكبير واستعراض النسيج' : 'CLICK TO ZOOM & INSPECT TEXTURE'}
                             </div>
 
-                            {/* Next/Prev Floating Arrows */}
-                            {prevImg && (
+                            {/* Next/Prev Floating Arrows for Suits */}
+                            {prevSuit && (
                                 <button
-                                    onClick={() => handleNavigateToImage(prevImg)}
+                                    onClick={() => handleNavigateToSuit(prevSuit)}
                                     className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black/70 hover:bg-[#D4AF37] hover:text-black border border-white/10 rounded-full transition-all duration-300 text-sm z-20"
                                     title={lang === 'ar' ? 'البدلة السابقة' : 'Previous Suit'}
                                 >
                                     <FaChevronLeft />
                                 </button>
                             )}
-                            {nextImg && (
+                            {nextSuit && (
                                 <button
-                                    onClick={() => handleNavigateToImage(nextImg)}
+                                    onClick={() => handleNavigateToSuit(nextSuit)}
                                     className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black/70 hover:bg-[#D4AF37] hover:text-black border border-white/10 rounded-full transition-all duration-300 text-sm z-20"
                                     title={lang === 'ar' ? 'البدلة التالية' : 'Next Suit'}
                                 >
@@ -159,6 +178,28 @@ const ProductDetailPage = ({ albumName, imgName, albums, lang, onNavigate, produ
                                 </button>
                             )}
                         </div>
+
+                        {/* Suit Thumbnails Gallery */}
+                        {suitImages.length > 1 && (
+                            <div className="flex gap-4 overflow-x-auto py-2">
+                                {suitImages.map((img, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => {
+                                            setActiveImageIdx(idx);
+                                            setIsZoomed(false);
+                                        }}
+                                        className={`w-20 h-24 rounded overflow-hidden border transition-all duration-300 flex-shrink-0 ${activeImageIdx === idx ? 'border-[#D4AF37] scale-105' : 'border-white/10 opacity-60 hover:opacity-100'}`}
+                                    >
+                                        <img
+                                            src={getImgSrc(activeAlbum.name, currentSuit.id, img, currentSuit.isLegacy)}
+                                            alt={`${displayName} thumbnail ${idx + 1}`}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Right Column: Suit Details */}
@@ -169,10 +210,10 @@ const ProductDetailPage = ({ albumName, imgName, albums, lang, onNavigate, produ
                                 {lang === 'ar' ? 'تفصيل فاخر حسب الطلب' : 'BESPOKE TAILORED'}
                             </span>
                             <h2 className="text-3xl md:text-4xl font-serif font-black tracking-wider text-white mb-4">
-                                {meta.name}
+                                {displayName}
                             </h2>
                             <p className="text-2xl font-serif text-[#D4AF37] font-bold">
-                                {meta.price}
+                                {displayPrice}
                             </p>
                         </div>
 
@@ -182,7 +223,7 @@ const ProductDetailPage = ({ albumName, imgName, albums, lang, onNavigate, produ
                                 {lang === 'ar' ? 'فلسفة التصميم' : 'Design Philosophy'}
                             </h4>
                             <p className="text-gray-400 text-base leading-relaxed">
-                                {meta.desc}
+                                {displayDesc}
                             </p>
                         </div>
 

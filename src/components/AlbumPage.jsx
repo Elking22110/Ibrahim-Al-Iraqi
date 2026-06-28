@@ -4,15 +4,11 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { getProductMetadata } from '../productMetadata';
 
 // Helper: get image src supporting both Cloudinary objects and local paths
-const getImgSrc = (albumName, img) => {
-    if (!img) return '';
-    if (typeof img === 'object' && img.url) return img.url;
-    return `/The Gallery/${encodeURIComponent(albumName)}/${encodeURIComponent(img)}`;
-};
-
-const getImgName = (img) => {
-    if (!img) return '';
-    return typeof img === 'object' ? img.filename : img;
+const getImgSrc = (category, coverImage) => {
+    if (!coverImage) return '';
+    if (typeof coverImage === 'object' && coverImage.url) return coverImage.url;
+    // Check if coverImage is inside a suit folder for local fallback paths
+    return `/The Gallery/${encodeURIComponent(category)}/${encodeURIComponent(coverImage)}`;
 };
 
 const AlbumPage = ({ albumName, albums, lang, onNavigate, productCatalog = {} }) => {
@@ -40,16 +36,11 @@ const AlbumPage = ({ albumName, albums, lang, onNavigate, productCatalog = {} })
         onNavigate('/');
     };
 
-    const handleProductClick = (imgName) => {
-        onNavigate(`/product/${albumName}/${imgName}`);
+    const handleProductClick = (suitId) => {
+        onNavigate(`/product/${albumName}/${suitId}`);
     };
 
-    // Filter out cover files if there are multiple images in the album
-    const imagesToDisplay = activeAlbum?.images ? activeAlbum.images.filter(img => {
-        const name = getImgName(img);
-        const isCover = name && name.toLowerCase().startsWith('cover');
-        return !(isCover && activeAlbum.images.length > 1);
-    }) : [];
+    const suitsToDisplay = activeAlbum?.suits || [];
 
     return (
         <div className={`w-full min-h-screen bg-[#0A0A0A] text-[#f5f5f0] py-24 px-6 md:px-20 ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}>
@@ -75,7 +66,7 @@ const AlbumPage = ({ albumName, albums, lang, onNavigate, productCatalog = {} })
 
             {/* Grid Container */}
             <div className="max-w-7xl mx-auto">
-                {!activeAlbum || imagesToDisplay.length === 0 ? (
+                {suitsToDisplay.length === 0 ? (
                     <div className="text-center py-32 border border-dashed border-white/10 rounded-2xl flex flex-col justify-center items-center gap-4">
                         <p className="text-gray-500 text-lg">
                             {lang === 'ar' 
@@ -85,25 +76,45 @@ const AlbumPage = ({ albumName, albums, lang, onNavigate, productCatalog = {} })
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-                        {imagesToDisplay.map((img, index) => {
-                            const filename = getImgName(img);
-                            // Get rich metadata for the suit
-                            const meta = getProductMetadata(activeAlbum.name, filename, lang, productCatalog);
+                        {suitsToDisplay.map((suit, index) => {
+                            // Find suitable cover image URL
+                            let coverSrc = '';
+                            if (suit.coverImage) {
+                                if (suit.coverImage.url) {
+                                    coverSrc = suit.coverImage.url;
+                                } else {
+                                    // Local fallback
+                                    coverSrc = `/The Gallery/${encodeURIComponent(activeAlbum.name)}/${suit.isLegacy ? '' : encodeURIComponent(suit.id) + '/'}${encodeURIComponent(suit.coverImage.filename || suit.coverImage)}`;
+                                }
+                            }
+
+                            // Retrieve suit texts from database, or fallback to metadata generator
+                            const name = lang === 'ar' ? suit.nameAr : suit.nameEn;
+                            const desc = lang === 'ar' ? suit.descAr : suit.descEn;
+                            const price = lang === 'ar' ? suit.priceAr : suit.priceEn;
+
+                            const fallbackMeta = (!name && !price) 
+                                ? getProductMetadata(activeAlbum.name, suit.id, lang, productCatalog) 
+                                : null;
+
+                            const displayName = name || fallbackMeta?.name || suit.id;
+                            const displayPrice = price || fallbackMeta?.price || '';
+                            const displayDesc = desc || fallbackMeta?.desc || '';
 
                             return (
                                 <motion.div
-                                    key={index}
+                                    key={suit.id}
                                     initial={{ opacity: 0, y: 40 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.8, delay: index * 0.1, ease: "easeOut" }}
-                                    onClick={() => handleProductClick(filename)}
+                                    onClick={() => handleProductClick(suit.id)}
                                     className="group cursor-pointer flex flex-col justify-between"
                                 >
                                     {/* Image Card Container */}
                                     <div className="overflow-hidden mb-6 relative aspect-[3/4] rounded-sm bg-[#111] border border-white/5 group-hover:border-[#D4AF37]/30 transition-all duration-500">
                                         <img
-                                            src={getImgSrc(activeAlbum.name, img)}
-                                            alt={meta.name}
+                                            src={coverSrc}
+                                            alt={displayName}
                                             loading="lazy"
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                         />
@@ -119,14 +130,14 @@ const AlbumPage = ({ albumName, albums, lang, onNavigate, productCatalog = {} })
                                     <div className="flex flex-col gap-2">
                                         <div className="flex justify-between items-start gap-4">
                                             <h3 className="text-xl font-bold text-white group-hover:text-[#D4AF37] transition-colors duration-300 font-serif">
-                                                {meta.name}
+                                                {displayName}
                                             </h3>
                                             <span className="text-[#D4AF37] text-lg font-bold font-serif whitespace-nowrap">
-                                                {meta.price}
+                                                {displayPrice}
                                             </span>
                                         </div>
                                         <p className="text-gray-400 text-sm leading-relaxed line-clamp-2">
-                                            {meta.desc}
+                                            {displayDesc}
                                         </p>
                                     </div>
                                 </motion.div>

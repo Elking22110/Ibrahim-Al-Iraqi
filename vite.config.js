@@ -62,23 +62,7 @@ export default defineConfig({
                         try {
                             const files = fs.readdirSync(galleryDir);
                             const validExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
-                            const albums = [];
-
-                            files.forEach(file => {
-                                const fullPath = path.join(galleryDir, file);
-                                if (fs.statSync(fullPath).isDirectory()) {
-                                    const albumFiles = fs.readdirSync(fullPath);
-                                    const images = albumFiles.filter(item => {
-                                        const ext = path.extname(item).toLowerCase();
-                                        return validExtensions.includes(ext);
-                                    });
-                                    images.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
-                                    albums.push({ name: file, images });
-                                }
-                            });
-
-                            albums.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
-
+                            
                             let catalog = {};
                             const catalogPath = path.resolve(galleryDir, 'catalog.json');
                             if (fs.existsSync(catalogPath)) {
@@ -88,6 +72,90 @@ export default defineConfig({
                                     console.error('Failed to parse local catalog:', e);
                                 }
                             }
+
+                            const albums = [];
+
+                            files.forEach(file => {
+                                const fullPath = path.join(galleryDir, file);
+                                if (fs.statSync(fullPath).isDirectory()) {
+                                    const albumFiles = fs.readdirSync(fullPath);
+                                    
+                                    // Group files into suits locally
+                                    const suitMap = {};
+
+                                    albumFiles.forEach(item => {
+                                        const itemPath = path.join(fullPath, item);
+                                        if (fs.statSync(itemPath).isDirectory()) {
+                                            // It is a suit directory!
+                                            const suitImages = fs.readdirSync(itemPath).filter(f => {
+                                                const ext = path.extname(f).toLowerCase();
+                                                return validExtensions.includes(ext);
+                                            }).map(f => ({
+                                                publicId: `ibrahim-aliraqi-gallery/${file}/${item}/${f}`,
+                                                url: `/The Gallery/${file}/${item}/${f}`,
+                                                filename: f
+                                            }));
+
+                                            if (suitImages.length > 0) {
+                                                suitMap[item] = {
+                                                    id: item,
+                                                    isLegacy: false,
+                                                    images: suitImages
+                                                };
+                                            }
+                                        } else {
+                                            // Legacy image directly in Category folder
+                                            const ext = path.extname(item).toLowerCase();
+                                            if (validExtensions.includes(ext)) {
+                                                const suitId = item.replace(/\.[^/.]+$/, '').trim();
+                                                if (!suitMap[suitId]) {
+                                                    suitMap[suitId] = {
+                                                        id: suitId,
+                                                        isLegacy: true,
+                                                        images: []
+                                                    };
+                                                }
+                                                suitMap[suitId].images.push({
+                                                    publicId: `ibrahim-aliraqi-gallery/${file}/${item}`,
+                                                    url: `/The Gallery/${file}/${item}`,
+                                                    filename: item
+                                                });
+                                            }
+                                        }
+                                    });
+
+                                    // Map metadata to suits
+                                    const suits = Object.values(suitMap).map(suit => {
+                                        const key = suit.id.toLowerCase();
+                                        const meta = catalog[key] || {};
+                                        const cover = suit.images.find(img => img.filename.toLowerCase().startsWith('cover')) || suit.images[0];
+
+                                        return {
+                                            id: suit.id,
+                                            nameAr: meta.ar?.name || '',
+                                            nameEn: meta.en?.name || '',
+                                            descAr: meta.ar?.desc || '',
+                                            descEn: meta.en?.desc || '',
+                                            priceAr: meta.ar?.price || '',
+                                            priceEn: meta.en?.price || '',
+                                            images: suit.images,
+                                            coverImage: cover,
+                                            isLegacy: suit.isLegacy
+                                        };
+                                    });
+
+                                    // Sort suits: custom entries first, then legacy
+                                    suits.sort((a, b) => {
+                                        if (a.isLegacy && !b.isLegacy) return 1;
+                                        if (!a.isLegacy && b.isLegacy) return -1;
+                                        return a.id.localeCompare(b.id);
+                                    });
+
+                                    albums.push({ name: file, suits });
+                                }
+                            });
+
+                            albums.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
                             res.setHeader('Content-Type', 'application/json');
                             res.end(JSON.stringify({ albums, catalog }));
@@ -102,7 +170,7 @@ export default defineConfig({
                         req.on('end', async () => {
                             try {
                                 const body = Buffer.concat(bodyChunks).toString();
-                                const { album, name, data } = JSON.parse(body);
+                                 const { album, suitId, name, data } = JSON.parse(body);
                                 if (!album) throw new Error('Album name is required');
                                 const base64Data = data.replace(/^data:image\/\w+;base64,/, '');
                                 const rawBuffer = Buffer.from(base64Data, 'base64');
@@ -117,7 +185,9 @@ export default defineConfig({
                                 const baseName = path.basename(name, path.extname(name));
                                 const finalName = baseName + '.webp';
 
-                                const targetAlbumDir = path.resolve(galleryDir, album);
+                                const targetAlbumDir = suitId 
+                                    ? path.resolve(galleryDir, album, suitId) 
+                                    : path.resolve(galleryDir, album);
                                 if (!fs.existsSync(targetAlbumDir)) fs.mkdirSync(targetAlbumDir, { recursive: true });
                                 fs.writeFileSync(path.resolve(targetAlbumDir, finalName), webpBuffer);
 

@@ -11,10 +11,13 @@ export default async function handler(req, res) {
 
     try {
         const cloudinary = initCloudinary();
-        const { album, name } = req.body;
+        const { album, suitId, name } = req.body;
         if (!album || !name) return res.status(400).json({ error: 'album and name are required' });
 
-        const publicId = `${GALLERY_FOLDER}/${album}/${name}`;
+        const folderPath = suitId 
+            ? `${GALLERY_FOLDER}/${album}/${suitId}` 
+            : `${GALLERY_FOLDER}/${album}`;
+        const publicId = `${folderPath}/${name.replace(/\.[^/.]+$/, '')}`;
         await cloudinary.uploader.destroy(publicId);
 
         return res.status(200).json({ success: true });
