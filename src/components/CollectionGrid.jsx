@@ -21,73 +21,79 @@ const getAlbumCover = (album) => {
 
 const CollectionGrid = ({ t, lang, albums = [], onNavigate }) => {
     // Default placeholders for the 4 vertical accordion columns
-    const defaultCovers = [
-        '/The Gallery/Classic/IMG_0199.JPG.jpeg',
-        '/The Gallery/Classic/IMG_0201.JPG.jpeg',
-        '/The Gallery/Classic/IMG_0205.JPG.jpeg',
-        '/The Gallery/Classic/IMG_0207.JPG.jpeg'
-    ];
-
-    const defaultNames = [
-        lang === 'ar' ? 'كلاسيكي' : 'Classic',
-        lang === 'ar' ? 'بدل زفاف' : 'Wedding Suits',
-        lang === 'ar' ? 'كاجوال' : 'Casual',
-        lang === 'ar' ? 'بدل فاخرة' : 'Luxury Suits'
-    ];
-
-    // Find custom albums that map to the 4 categories
-    const getAlbumForColumn = (index) => {
-        if (index === 0) {
-            return albums.find(a => {
-                const n = a.name.toLowerCase();
-                return n.includes('classic') || n.includes('collection') || n.includes('كلاسيك');
-            });
+    const getAlbumDisplayName = (albumName, currentLang) => {
+        if (!albumName) return '';
+        const n = albumName.toLowerCase();
+        if (n.includes('classic') || n.includes('collection') || n.includes('كلاسيك')) {
+            return currentLang === 'ar' ? 'كلاسيكي' : 'Classic';
         }
-        if (index === 1) {
-            return albums.find(a => {
-                const n = a.name.toLowerCase();
-                return n.includes('wedding') || n.includes('زفاف');
-            });
+        if (n.includes('wedding') || n.includes('زفاف')) {
+            return currentLang === 'ar' ? 'بدل زفاف' : 'Wedding Suits';
         }
-        if (index === 2) {
-            return albums.find(a => {
-                const n = a.name.toLowerCase();
-                return n.includes('casual') || n.includes('كاجوال');
-            });
+        if (n.includes('casual') || n.includes('كاجوال')) {
+            return currentLang === 'ar' ? 'كاجوال' : 'Casual';
         }
-        if (index === 3) {
-            return albums.find(a => {
-                const n = a.name.toLowerCase();
-                return n.includes('luxury') || n.includes('فاخر');
-            });
+        if (n.includes('luxury') || n.includes('فاخر')) {
+            return currentLang === 'ar' ? 'بدل فاخرة' : 'Luxury Suits';
         }
-        return null;
+        return albumName;
     };
 
-    // Build exactly 4 columns
-    const columnsData = Array.from({ length: 4 }).map((_, index) => {
-        const album = getAlbumForColumn(index);
-        const colName = defaultNames[index];
+    // 1. Gather all core albums (which might map to Cloudinary folders or show placeholders)
+    const coreColumnAlbums = [
+        { id: 'Classic', defaultName: lang === 'ar' ? 'كلاسيكي' : 'Classic' },
+        { id: 'Wedding', defaultName: lang === 'ar' ? 'بدل زفاف' : 'Wedding Suits' },
+        { id: 'Casual', defaultName: lang === 'ar' ? 'كاجوال' : 'Casual' },
+        { id: 'Luxury', defaultName: lang === 'ar' ? 'بدل فاخرة' : 'Luxury Suits' }
+    ].map(cat => {
+        const realAlbum = albums.find(a => {
+            const n = a.name.toLowerCase();
+            const target = cat.id.toLowerCase();
+            if (target === 'classic') return n.includes('classic') || n.includes('collection') || n.includes('كلاسيك');
+            if (target === 'wedding') return n.includes('wedding') || n.includes('زفاف');
+            if (target === 'casual') return n.includes('casual') || n.includes('كاجوال');
+            if (target === 'luxury') return n.includes('luxury') || n.includes('فاخر');
+            return false;
+        });
 
-        if (album) {
-            const cover = getAlbumCover(album);
-            return {
-                id: album.name,
-                name: colName,
-                coverUrl: cover ? getImgSrc(album.name, cover) : defaultCovers[index],
-                images: album.images,
-                isPlaceholder: false
-            };
-        } else {
-            return {
-                id: `placeholder-${index}`,
-                name: colName,
-                coverUrl: defaultCovers[index],
-                images: [],
-                isPlaceholder: true
-            };
-        }
+        const cover = realAlbum ? getAlbumCover(realAlbum) : null;
+        const defaultCovers = {
+            Classic: '/The Gallery/Classic/IMG_0199.JPG.jpeg',
+            Wedding: '/The Gallery/Classic/IMG_0201.JPG.jpeg',
+            Casual: '/The Gallery/Classic/IMG_0205.JPG.jpeg',
+            Luxury: '/The Gallery/Classic/IMG_0207.JPG.jpeg'
+        };
+
+        return {
+            id: realAlbum ? realAlbum.name : cat.id,
+            name: cat.defaultName,
+            coverUrl: cover ? getImgSrc(realAlbum.name, cover) : defaultCovers[cat.id],
+            images: realAlbum ? realAlbum.images : [],
+            isPlaceholder: !realAlbum
+        };
     });
+
+    // 2. Gather custom albums that don't match the core 4
+    const customColumnAlbums = albums.filter(a => {
+        const n = a.name.toLowerCase();
+        const isClassic = n.includes('classic') || n.includes('collection') || n.includes('كلاسيك');
+        const isWedding = n.includes('wedding') || n.includes('زفاف');
+        const isCasual = n.includes('casual') || n.includes('كاجوال');
+        const isLuxury = n.includes('luxury') || n.includes('فاخر');
+        return !isClassic && !isWedding && !isCasual && !isLuxury;
+    }).map(a => {
+        const cover = getAlbumCover(a);
+        return {
+            id: a.name,
+            name: getAlbumDisplayName(a.name, lang),
+            coverUrl: cover ? getImgSrc(a.name, cover) : '/The Gallery/Classic/IMG_0199.JPG.jpeg',
+            images: a.images,
+            isPlaceholder: false
+        };
+    });
+
+    // Combine them to form the accordion layout (dynamic!)
+    const columnsData = [...coreColumnAlbums, ...customColumnAlbums];
 
     return (
         <section id="collection" className={`w-full py-32 bg-[#0A0A0A] relative overflow-hidden ${lang === 'ar' ? 'font-cairo' : ''}`}>

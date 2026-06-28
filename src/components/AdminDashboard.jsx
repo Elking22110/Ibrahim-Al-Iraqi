@@ -224,7 +224,8 @@ const AdminDashboard = ({ lang, setLang }) => {
         });
     };
 
-    const dashboardAlbums = [
+    // 1. Gather all core albums (which might map to Cloudinary folders or show placeholders)
+    const coreAlbums = [
         { id: 'Classic', defaultName: lang === 'ar' ? 'كلاسيكي' : 'Classic' },
         { id: 'Wedding', defaultName: lang === 'ar' ? 'بدل زفاف' : 'Wedding Suits' },
         { id: 'Casual', defaultName: lang === 'ar' ? 'كاجوال' : 'Casual' },
@@ -234,11 +235,76 @@ const AdminDashboard = ({ lang, setLang }) => {
         return {
             id: realAlbum ? realAlbum.name : cat.id,
             displayName: cat.defaultName,
-            images: realAlbum ? realAlbum.images : []
+            images: realAlbum ? realAlbum.images : [],
+            isCore: true
         };
     });
 
+    // 2. Identify any custom albums that do NOT match the core 4
+    const customAlbums = albums.filter(a => {
+        const n = a.name.toLowerCase();
+        const isClassic = n.includes('classic') || n.includes('collection') || n.includes('كلاسيك');
+        const isWedding = n.includes('wedding') || n.includes('زفاف');
+        const isCasual = n.includes('casual') || n.includes('كاجوال');
+        const isLuxury = n.includes('luxury') || n.includes('faher') || n.includes('فاخر');
+        return !isClassic && !isWedding && !isCasual && !isLuxury;
+    }).map(a => ({
+        id: a.name,
+        displayName: getAlbumDisplayName(a.name, lang),
+        images: a.images,
+        isCore: false
+    }));
+
+    // Combine them to display in the dashboard
+    const dashboardAlbums = [...coreAlbums, ...customAlbums];
+
     const activeAlbum = dashboardAlbums.find(a => a.id === activeAlbumName);
+
+    // ─── Album CRUD ────────────────────────────────────────────────
+    const handleCreateAlbum = async () => {
+        const albumName = window.prompt(
+            lang === 'ar' 
+                ? 'أدخل اسم القسم الجديد بالإنجليزية (مثال: Winter):' 
+                : 'Enter new category name in English (e.g. Winter):'
+        );
+        if (!albumName?.trim()) return;
+        try {
+            setLoading(true);
+            const res = await fetch('/api/create-album', {
+                method: 'POST', headers: authHeaders,
+                body: JSON.stringify({ name: albumName.trim() })
+            });
+            const result = await res.json();
+            if (result.success) {
+                setStatusMessage(lang === 'ar' ? `✅ تم إنشاء القسم "${albumName}"` : `✅ Category "${albumName}" created`);
+                await fetchGallery();
+            } else throw new Error(result.error);
+        } catch (err) {
+            setStatusMessage(lang === 'ar' ? '❌ فشل إنشاء القسم' : '❌ Failed to create category');
+        } finally { setLoading(false); }
+    };
+
+    const handleDeleteAlbum = async (albumName) => {
+        const msg = lang === 'ar'
+            ? `تحذير: هل أنت متأكد من حذف القسم "${albumName}" بالكامل؟ سيُحذف كل محتواه نهائياً!`
+            : `WARNING: Delete category "${albumName}"? All images inside will be permanently deleted!`;
+        if (!window.confirm(msg)) return;
+        try {
+            setLoading(true);
+            const res = await fetch('/api/delete-album', {
+                method: 'POST', headers: authHeaders,
+                body: JSON.stringify({ name: albumName })
+            });
+            const result = await res.json();
+            if (result.success) {
+                setStatusMessage(lang === 'ar' ? '✅ تم حذف القسم بنجاح' : '✅ Category deleted successfully');
+                if (activeAlbumName === albumName) setActiveAlbumName(null);
+                await fetchGallery();
+            } else throw new Error(result.error);
+        } catch {
+            setStatusMessage(lang === 'ar' ? '❌ فشل حذف القسم' : '❌ Failed to delete category');
+        } finally { setLoading(false); }
+    };
 
     // ─── Album Clear ──────────────────────────────────────────────
     const handleClearAlbum = async (albumId) => {
@@ -502,6 +568,11 @@ const AdminDashboard = ({ lang, setLang }) => {
                                 <FaImages className="text-[#D4AF37]" />
                                 {lang === 'ar' ? 'الأقسام الحالية' : 'Available Categories'}
                             </h2>
+                            <button onClick={handleCreateAlbum}
+                                className="px-6 py-3 bg-[#D4AF37] text-black hover:bg-[#F2E8C9] rounded-full flex items-center gap-2 text-sm font-black transition-all duration-300 shadow-lg">
+                                <FaFolderPlus />
+                                {lang === 'ar' ? 'إنشاء قسم جديد' : 'New Category'}
+                            </button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -522,9 +593,16 @@ const AdminDashboard = ({ lang, setLang }) => {
                                     </div>
                                     <div className="flex gap-3 mt-8 border-t border-white/5 pt-4">
                                         <button onClick={() => setActiveAlbumName(album.id)}
-                                            className="w-full py-2.5 bg-white/5 hover:bg-[#D4AF37] text-white hover:text-black border border-white/10 hover:border-[#D4AF37] rounded-lg text-xs font-bold transition-all duration-300">
+                                            className="flex-1 py-2.5 bg-white/5 hover:bg-[#D4AF37] text-white hover:text-black border border-white/10 hover:border-[#D4AF37] rounded-lg text-xs font-bold transition-all duration-300">
                                             {lang === 'ar' ? 'دخول وإدارة الصور' : 'Manage Images'}
                                         </button>
+                                        {!album.isCore && (
+                                            <button onClick={() => handleDeleteAlbum(album.id)}
+                                                className="p-2.5 bg-red-950/20 hover:bg-red-600 border border-red-500/20 rounded-lg text-red-500 hover:text-white transition-colors"
+                                                title={lang === 'ar' ? 'حذف القسم بالكامل' : 'Delete Category'}>
+                                                <FaTrash />
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ))}
