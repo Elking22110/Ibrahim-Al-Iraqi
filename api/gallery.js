@@ -10,8 +10,31 @@ export default async function handler(req, res) {
         const cloudinary = initCloudinary();
 
         // List all sub-folders = albums
-        const foldersResult = await cloudinary.api.sub_folders(GALLERY_FOLDER);
-        const folders = foldersResult.folders || [];
+        let foldersResult = await cloudinary.api.sub_folders(GALLERY_FOLDER);
+        let folders = foldersResult.folders || [];
+
+        // Self-healing: Ensure all 4 standard folders are explicitly created on Cloudinary
+        const requiredFolders = ['Collection', 'Wedding', 'Casual', 'Luxury'];
+        let needsRefetch = false;
+
+        for (const reqFolder of requiredFolders) {
+            const exists = folders.some(f => f.name.toLowerCase() === reqFolder.toLowerCase());
+            if (!exists) {
+                console.log(`[api/gallery] Explicitly creating missing folder on Cloudinary: ${reqFolder}`);
+                try {
+                    await cloudinary.api.create_folder(`${GALLERY_FOLDER}/${reqFolder}`);
+                    needsRefetch = true;
+                } catch (err) {
+                    console.error(`Failed to create folder ${reqFolder}:`, err.message);
+                }
+            }
+        }
+
+        // Refetch folders if we created any new ones so they are included in the results
+        if (needsRefetch) {
+            foldersResult = await cloudinary.api.sub_folders(GALLERY_FOLDER);
+            folders = foldersResult.folders || [];
+        }
 
         const albums = await Promise.all(folders.map(async (folder) => {
             const albumName = folder.name;

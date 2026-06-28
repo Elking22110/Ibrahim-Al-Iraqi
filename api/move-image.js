@@ -20,6 +20,11 @@ export default async function handler(req, res) {
         const sourcePublicId = `${GALLERY_FOLDER}/${fromAlbum}/${filename}`;
         const targetPublicId = `${GALLERY_FOLDER}/${toAlbum}/${filename}`;
 
+        // Explicitly create the target folder in Cloudinary so it registers in sub_folders list
+        const targetFolder = `${GALLERY_FOLDER}/${toAlbum}`;
+        console.log(`[api/move-image] Creating folder if missing: ${targetFolder}`);
+        await cloudinary.api.create_folder(targetFolder);
+
         console.log(`[api/move-image] Moving ${sourcePublicId} to ${targetPublicId}`);
         await cloudinary.uploader.rename(sourcePublicId, targetPublicId, { overwrite: true });
 
