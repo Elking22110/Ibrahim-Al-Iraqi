@@ -68,7 +68,7 @@ const Navbar = ({ lang, setLang, t }) => {
                     <li
                         key={index}
                         onClick={() => scrollToSection(link.id)}
-                        className="hover:text-[#D4AF37] transition-colors cursor-pointer"
+                        className="hover:text-[#C5A880] transition-colors cursor-pointer"
                     >
                         {link.name}
                     </li>
@@ -86,7 +86,7 @@ const Navbar = ({ lang, setLang, t }) => {
                 <button
                     onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
                     aria-label={lang === 'en' ? 'Switch to Arabic' : 'Switch to English'} // Added for A11y
-                    className="text-xs font-bold text-white/70 hover:text-[#D4AF37] transition-colors uppercase tracking-widest"
+                    className="text-xs font-bold text-white/70 hover:text-[#C5A880] transition-colors uppercase tracking-widest"
                 >
                     {lang === 'en' ? 'AR' : 'EN'}
                 </button>

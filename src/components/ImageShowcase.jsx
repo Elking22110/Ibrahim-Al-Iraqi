@@ -118,7 +118,7 @@ const ImageShowcase = ({ t, lang }) => {
                     </p>
                 </div>
                 <div className="mt-8 md:mt-0 animate-showcase-text">
-                    <span className="block text-xs uppercase tracking-widest text-[#D4AF37]">
+                    <span className="block text-xs uppercase tracking-widest text-[#C5A880]">
                         {t?.est || "Est. 2024"}
                     </span>
                 </div>

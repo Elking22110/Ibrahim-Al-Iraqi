@@ -7,7 +7,7 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #050505;
+  background-color: #0A0A0A;
   /* Deep Cinematic Dark */
   color: #ffffff;
   overflow-x: hidden;
@@ -16,7 +16,7 @@ body {
 
 /* Custom Selection Color */
 ::selection {
-  background-color: #D4AF37;
+  background-color: #C5A880;
   color: #000000;
 }
 
@@ -26,11 +26,11 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #050505;
+  background: #0A0A0A;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D4AF37;
+  background: #C5A880;
   border-radius: 4px;
 }
 

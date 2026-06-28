@@ -47,7 +47,7 @@ function App() {
 
     return (
         <LazyMotion features={domMax}>
-            <div className={`w-full min-h-screen bg-[#050505] overflow-x-hidden relative ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}>
+            <div className={`w-full min-h-screen bg-[#0A0A0A] overflow-x-hidden relative ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}>
                 <LuxuryBackground />
                 <LuxuryCursor />
 

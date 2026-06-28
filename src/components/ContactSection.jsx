@@ -90,10 +90,10 @@ const ContactSection = ({ t, lang }) => {
     };
 
     return (
-        <section id="contact" ref={sectionRef} className={`relative w-full py-24 bg-[#050505] text-white overflow-hidden ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}>
+        <section id="contact" ref={sectionRef} className={`relative w-full py-24 bg-[#0A0A0A] text-white overflow-hidden ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}>
             {/* Background Image with HEAVY Overlay */}
             <div className="absolute inset-0 z-0">
-                <div className="absolute inset-0 bg-[#050505]/60"></div>
+                <div className="absolute inset-0 bg-[#0A0A0A]/60"></div>
             </div>
 
             {/* Dynamic Background Effects - Spotlight Blended */}
@@ -121,14 +121,14 @@ const ContactSection = ({ t, lang }) => {
                         y: [0, -20, 0]
                     }}
                     transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-[#D4AF37]/10 rounded-full blur-[120px]"
+                    className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-[#C5A880]/10 rounded-full blur-[120px]"
                 />
                 {/* Twinkle Effect */}
                 <div className="absolute inset-0 z-0">
                     {[...Array(window.innerWidth < 768 ? 5 : 20)].map((_, i) => (
                         <motion.div
                             key={i}
-                            className="absolute bg-[#D4AF37] rounded-full blur-[1px]"
+                            className="absolute bg-[#C5A880] rounded-full blur-[1px]"
                             initial={{
                                 top: `${Math.random() * 100}%`,
                                 left: `${Math.random() * 100}%`,
@@ -157,7 +157,7 @@ const ContactSection = ({ t, lang }) => {
                 {/* Header */}
                 <div className="text-center mb-20 relative z-10">
                     <h3
-                        className="animate-contact-subtitle text-[#D4AF37] uppercase tracking-[0.3em] mb-4 text-sm md:text-base font-bold"
+                        className="animate-contact-subtitle text-[#C5A880] uppercase tracking-[0.3em] mb-4 text-sm md:text-base font-bold"
                     >
                         {t?.subtitle}
                     </h3>
@@ -172,22 +172,22 @@ const ContactSection = ({ t, lang }) => {
                     >
                         {t?.title}
                     </ScrollFloat>
-                    <div className="w-32 h-1 bg-[#D4AF37] mx-auto"></div>
+                    <div className="w-32 h-1 bg-[#C5A880] mx-auto"></div>
                 </div>
 
                 {/* Card Container */}
                 <div className="max-w-3xl mx-auto relative rounded-2xl p-[3px] overflow-hidden z-10">
 
                     {/* Inner Content Card */}
-                    <div ref={cardRef} className="relative h-full w-full bg-black/60 backdrop-blur-xl rounded-2xl p-10 md:p-16 border border-[#D4AF37]/20">
+                    <div ref={cardRef} className="relative h-full w-full bg-black/60 backdrop-blur-xl rounded-2xl p-10 md:p-16 border border-[#C5A880]/20">
                         {/* Decorative Corner Glow (Moved inside) */}
-                        <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#D4AF37]/10 blur-[100px] rounded-full pointer-events-none"></div>
+                        <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#C5A880]/10 blur-[100px] rounded-full pointer-events-none"></div>
 
                         <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {/* Name */}
                                 <div className="animate-form-item flex flex-col gap-2">
-                                    <label className="text-[#D4AF37] text-sm uppercase tracking-widest font-bold ml-1">{t?.namePlaceholder}</label>
+                                    <label className="text-[#C5A880] text-sm uppercase tracking-widest font-bold ml-1">{t?.namePlaceholder}</label>
                                     <input
                                         type="text"
                                         name="name"
@@ -195,13 +195,13 @@ const ContactSection = ({ t, lang }) => {
                                         onChange={handleChange}
                                         placeholder={t?.namePlaceholder}
                                         required
-                                        className="w-full bg-white/10 border-2 border-[#D4AF37] rounded-lg px-6 py-5 text-xl text-white focus:outline-none focus:bg-white/20 transition-all duration-300 placeholder-white/50"
+                                        className="w-full bg-white/10 border-2 border-[#C5A880] rounded-lg px-6 py-5 text-xl text-white focus:outline-none focus:bg-white/20 transition-all duration-300 placeholder-white/50"
                                     />
                                 </div>
 
                                 {/* Phone */}
                                 <div className="animate-form-item flex flex-col gap-2">
-                                    <label className="text-[#D4AF37] text-sm uppercase tracking-widest font-bold ml-1">{t?.phonePlaceholder}</label>
+                                    <label className="text-[#C5A880] text-sm uppercase tracking-widest font-bold ml-1">{t?.phonePlaceholder}</label>
                                     <input
                                         type="tel"
                                         name="phone"
@@ -209,7 +209,7 @@ const ContactSection = ({ t, lang }) => {
                                         onChange={handleChange}
                                         placeholder={t?.phonePlaceholder}
                                         required
-                                        className={`w-full bg-white/10 border-2 border-[#D4AF37] rounded-lg px-6 py-5 text-xl text-white focus:outline-none focus:bg-white/20 transition-all duration-300 placeholder-white/50 text-${lang === 'ar' ? 'right' : 'left'}`}
+                                        className={`w-full bg-white/10 border-2 border-[#C5A880] rounded-lg px-6 py-5 text-xl text-white focus:outline-none focus:bg-white/20 transition-all duration-300 placeholder-white/50 text-${lang === 'ar' ? 'right' : 'left'}`}
                                         dir="ltr"
                                     />
                                 </div>
@@ -217,7 +217,7 @@ const ContactSection = ({ t, lang }) => {
 
                             {/* Message */}
                             <div className="animate-form-item flex flex-col gap-2">
-                                <label className="text-[#D4AF37] text-sm uppercase tracking-widest font-bold ml-1">{t?.messagePlaceholder}</label>
+                                <label className="text-[#C5A880] text-sm uppercase tracking-widest font-bold ml-1">{t?.messagePlaceholder}</label>
                                 <textarea
                                     name="message"
                                     rows="5"
@@ -225,17 +225,17 @@ const ContactSection = ({ t, lang }) => {
                                     onChange={handleChange}
                                     placeholder={t?.messagePlaceholder}
                                     required
-                                    className="w-full bg-white/10 border-2 border-[#D4AF37] rounded-lg px-6 py-5 text-xl text-white focus:outline-none focus:bg-white/20 transition-all duration-300 resize-none placeholder-white/50"
+                                    className="w-full bg-white/10 border-2 border-[#C5A880] rounded-lg px-6 py-5 text-xl text-white focus:outline-none focus:bg-white/20 transition-all duration-300 resize-none placeholder-white/50"
                                 ></textarea>
                             </div>
 
                             {/* Submit Btn */}
                             <div className="animate-form-item flex justify-center pt-6">
                                 <motion.button
-                                    whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(212, 175, 55, 0.4)" }}
+                                    whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(197, 168, 128, 0.4)" }}
                                     whileTap={{ scale: 0.95 }}
                                     type="submit"
-                                    className="bg-[#D4AF37] text-black px-16 py-5 uppercase tracking-[0.2em] font-black text-sm hover:bg-[#F2E8C9] transition-all duration-300 rounded-full shadow-lg"
+                                    className="bg-[#C5A880] text-black px-16 py-5 uppercase tracking-[0.2em] font-black text-sm hover:bg-[#F2E8C9] transition-all duration-300 rounded-full shadow-lg"
                                 >
                                     {t?.submit}
                                 </motion.button>

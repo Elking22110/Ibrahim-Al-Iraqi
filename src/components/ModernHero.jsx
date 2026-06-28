@@ -8,36 +8,13 @@ const ModernHero = ({ t, lang }) => {
     const { scrollY } = useScroll();
     const yBg = useTransform(scrollY, [0, 500], [0, 200]); // Parallax effect
 
-    // Audio Autoplay Logic (Matches Loader behavior)
+    // Background Video Autoplay (Muted at all times)
     useEffect(() => {
         const video = videoRef.current;
         if (!video) return;
 
-        // Default to muted autoplay (browser policy compliant)
         video.muted = true;
-        video.play().catch(e => console.warn("Video playback initialized as muted (Autoplay policy).", e));
-
-        // Unmute on FIRST interaction
-        const enableSound = () => {
-            if (video.muted) {
-                video.muted = false;
-                video.volume = 1.0;
-            }
-            // Remove listeners once sound is enabled
-            document.removeEventListener('click', enableSound);
-            document.removeEventListener('touchstart', enableSound);
-            document.removeEventListener('keydown', enableSound);
-        };
-
-        document.addEventListener('click', enableSound);
-        document.addEventListener('touchstart', enableSound);
-        document.addEventListener('keydown', enableSound);
-
-        return () => {
-            document.removeEventListener('click', enableSound);
-            document.removeEventListener('touchstart', enableSound);
-            document.removeEventListener('keydown', enableSound);
-        };
+        video.play().catch(e => console.warn("Muted video autoplay.", e));
     }, []);
 
     return (
@@ -68,7 +45,7 @@ const ModernHero = ({ t, lang }) => {
                 />
 
                 {/* Overlay gradient - Reduced opacity for better video visibility */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-black/10 to-black/20"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-black/10 to-black/20"></div>
 
 
             </div>
@@ -113,7 +90,7 @@ const ModernHero = ({ t, lang }) => {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.8, delay: 2.6, type: "spring", stiffness: 100 }} // Delayed to 2.6s
-                    whileHover={{ scale: 1.05, backgroundColor: "#D4AF37", color: "#fff" }}
+                    whileHover={{ scale: 1.05, backgroundColor: "#C5A880", color: "#fff" }}
                     whileTap={{ scale: 0.95 }}
                     className="bg-white text-black px-12 py-5 uppercase tracking-[0.2em] text-xs font-bold transition-all shadow-2xl hover:shadow-gold/20"
                 >
