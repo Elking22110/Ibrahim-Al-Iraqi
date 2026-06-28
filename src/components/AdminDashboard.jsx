@@ -35,6 +35,24 @@ const AdminDashboard = ({ lang, setLang }) => {
         return name && name.toLowerCase().startsWith('cover');
     };
 
+    const getAlbumDisplayName = (albumName, currentLang) => {
+        if (!albumName) return '';
+        const n = albumName.toLowerCase();
+        if (n.includes('classic') || n.includes('collection') || n.includes('كلاسيك')) {
+            return currentLang === 'ar' ? 'كلاسيكي' : 'Classic';
+        }
+        if (n.includes('wedding') || n.includes('زفاف')) {
+            return currentLang === 'ar' ? 'بدل زفاف' : 'Wedding Suits';
+        }
+        if (n.includes('casual') || n.includes('كاجوال')) {
+            return currentLang === 'ar' ? 'كاجوال' : 'Casual';
+        }
+        if (n.includes('luxury') || n.includes('فاخر')) {
+            return currentLang === 'ar' ? 'بدل فاخرة' : 'Luxury Suits';
+        }
+        return albumName;
+    };
+
     const handleSetCover = async (img) => {
         const filename = getImgName(img);
         try {
@@ -412,7 +430,7 @@ const AdminDashboard = ({ lang, setLang }) => {
                     <div>
                         <h1 className="text-3xl font-bold tracking-wider text-[#D4AF37]">
                             {activeAlbumName
-                                ? (lang === 'ar' ? `قسم: ${activeAlbumName}` : `Category: ${activeAlbumName}`)
+                                ? (lang === 'ar' ? `قسم: ${getAlbumDisplayName(activeAlbumName, lang)}` : `Category: ${getAlbumDisplayName(activeAlbumName, lang)}`)
                                 : (lang === 'ar' ? 'أقسام معرض الصور' : 'Gallery Categories')}
                         </h1>
                         <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">
@@ -495,7 +513,7 @@ const AdminDashboard = ({ lang, setLang }) => {
                                                 </span>
                                             </div>
                                             <h3 className="text-xl font-bold text-white group-hover:text-[#D4AF37] transition-colors truncate">
-                                                {album.name}
+                                                {getAlbumDisplayName(album.name, lang)}
                                             </h3>
                                         </div>
                                         <div className="flex gap-3 mt-8 border-t border-white/5 pt-4">
