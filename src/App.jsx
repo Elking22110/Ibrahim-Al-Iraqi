@@ -108,7 +108,6 @@ function App() {
                                         <ModernHero t={t.hero} lang={lang} />
                                         <TailoringSection t={t.tailoring} lang={lang} />
                                         <ImageShowcase t={t.imageShowcase} lang={lang} />
-                                        <GallerySection t={t.collection} lang={lang} albums={galleryAlbums} />
                                         <CollectionGrid t={t.collection} lang={lang} albums={galleryAlbums} />
                                         <ContactSection t={t.contact} lang={lang} />
                                         <Footer t={t.footer} lang={lang} />
