@@ -37,10 +37,11 @@ function App() {
     }, [lang]);
 
     useEffect(() => {
-        // Simulate asset loading interaction
+        // Guarantee a minimum loading time of 3.2 seconds to allow the luxury animations 
+        // (golden progress thread, logo, and brand texts) to fully complete.
         const timer = setTimeout(() => {
             setIsLoading(false);
-        }, 2200);
+        }, 3200);
         return () => clearTimeout(timer);
     }, []);
 

@@ -59,7 +59,7 @@ const ModernHero = ({ t, lang }) => {
 
                 {/* Mobile Fallback Image - LCP Optimized */}
                 <img
-                    src="/the%20new%20Background/Title_a_luxurious_2k_202601132212.jpeg"
+                    src="/the%20new%20Background/Title_a_luxurious_2k.webp"
                     alt="Luxury Background"
                     fetchPriority="high" // Critical for LCP
                     loading="eager"

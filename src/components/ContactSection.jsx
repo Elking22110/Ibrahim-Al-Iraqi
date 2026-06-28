@@ -1,14 +1,81 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import ScrollFloat from './ScrollFloat';
 import Prism from './Prism';
 
+if (typeof window !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger);
+}
+
 const ContactSection = ({ t, lang }) => {
+    const sectionRef = useRef(null);
+    const cardRef = useRef(null);
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
         message: ''
     });
+
+    useEffect(() => {
+        const section = sectionRef.current;
+        if (!section) return;
+
+        let ctx = gsap.context(() => {
+            // Subtitle fade
+            gsap.fromTo(".animate-contact-subtitle",
+                { opacity: 0, y: 20 },
+                {
+                    opacity: 1,
+                    y: 0,
+                    duration: 1.0,
+                    ease: "power2.out",
+                    scrollTrigger: {
+                        trigger: ".animate-contact-subtitle",
+                        start: "top bottom-=10%",
+                        toggleActions: "play none none reverse"
+                    }
+                }
+            );
+
+            // Card scale + slide in
+            gsap.fromTo(cardRef.current,
+                { opacity: 0, y: 60, scale: 0.96 },
+                {
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                    duration: 1.4,
+                    ease: "power4.out",
+                    scrollTrigger: {
+                        trigger: cardRef.current,
+                        start: "top bottom-=10%",
+                        toggleActions: "play none none reverse"
+                    }
+                }
+            );
+
+            // Form items stagger
+            gsap.fromTo(".animate-form-item",
+                { opacity: 0, y: 25 },
+                {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.9,
+                    ease: "power3.out",
+                    stagger: 0.12,
+                    scrollTrigger: {
+                        trigger: cardRef.current,
+                        start: "top bottom-=5%",
+                        toggleActions: "play none none reverse"
+                    }
+                }
+            );
+        }, sectionRef);
+
+        return () => ctx.revert();
+    }, []);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,7 +90,7 @@ const ContactSection = ({ t, lang }) => {
     };
 
     return (
-        <section id="contact" className={`relative w-full py-24 bg-[#050505] text-white overflow-hidden ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}>
+        <section id="contact" ref={sectionRef} className={`relative w-full py-24 bg-[#050505] text-white overflow-hidden ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}>
             {/* Background Image with HEAVY Overlay */}
             <div className="absolute inset-0 z-0">
                 <div className="absolute inset-0 bg-[#050505]/60"></div>
@@ -89,14 +156,11 @@ const ContactSection = ({ t, lang }) => {
 
                 {/* Header */}
                 <div className="text-center mb-20 relative z-10">
-                    <motion.h3
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="text-[#D4AF37] uppercase tracking-[0.3em] mb-4 text-sm md:text-base font-bold"
+                    <h3
+                        className="animate-contact-subtitle text-[#D4AF37] uppercase tracking-[0.3em] mb-4 text-sm md:text-base font-bold"
                     >
                         {t?.subtitle}
-                    </motion.h3>
+                    </h3>
                     <ScrollFloat
                         animationDuration={2.5}
                         ease='back.out(1.5)'
@@ -111,20 +175,18 @@ const ContactSection = ({ t, lang }) => {
                     <div className="w-32 h-1 bg-[#D4AF37] mx-auto"></div>
                 </div>
 
-                {/* Electric Border Container */}
+                {/* Card Container */}
                 <div className="max-w-3xl mx-auto relative rounded-2xl p-[3px] overflow-hidden z-10">
-                    {/* Electric Border Container - Gradient Removed */}
-
 
                     {/* Inner Content Card */}
-                    <div className="relative h-full w-full bg-black/60 backdrop-blur-xl rounded-2xl p-10 md:p-16 border border-[#D4AF37]/20">
+                    <div ref={cardRef} className="relative h-full w-full bg-black/60 backdrop-blur-xl rounded-2xl p-10 md:p-16 border border-[#D4AF37]/20">
                         {/* Decorative Corner Glow (Moved inside) */}
                         <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#D4AF37]/10 blur-[100px] rounded-full pointer-events-none"></div>
 
                         <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {/* Name */}
-                                <div className="flex flex-col gap-2">
+                                <div className="animate-form-item flex flex-col gap-2">
                                     <label className="text-[#D4AF37] text-sm uppercase tracking-widest font-bold ml-1">{t?.namePlaceholder}</label>
                                     <input
                                         type="text"
@@ -138,7 +200,7 @@ const ContactSection = ({ t, lang }) => {
                                 </div>
 
                                 {/* Phone */}
-                                <div className="flex flex-col gap-2">
+                                <div className="animate-form-item flex flex-col gap-2">
                                     <label className="text-[#D4AF37] text-sm uppercase tracking-widest font-bold ml-1">{t?.phonePlaceholder}</label>
                                     <input
                                         type="tel"
@@ -154,7 +216,7 @@ const ContactSection = ({ t, lang }) => {
                             </div>
 
                             {/* Message */}
-                            <div className="flex flex-col gap-2">
+                            <div className="animate-form-item flex flex-col gap-2">
                                 <label className="text-[#D4AF37] text-sm uppercase tracking-widest font-bold ml-1">{t?.messagePlaceholder}</label>
                                 <textarea
                                     name="message"
@@ -168,7 +230,7 @@ const ContactSection = ({ t, lang }) => {
                             </div>
 
                             {/* Submit Btn */}
-                            <div className="flex justify-center pt-6">
+                            <div className="animate-form-item flex justify-center pt-6">
                                 <motion.button
                                     whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(212, 175, 55, 0.4)" }}
                                     whileTap={{ scale: 0.95 }}

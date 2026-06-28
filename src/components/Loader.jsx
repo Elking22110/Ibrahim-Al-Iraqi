@@ -36,7 +36,7 @@ const Loader = ({ onComplete, t, lang }) => {
 
     return (
         <motion.div
-            className="fixed inset-0 z-[100] bg-[#050505] flex flex-col items-center justify-center text-white overflow-hidden"
+            className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center text-white overflow-hidden"
             initial={{ opacity: 1 }}
             exit={{
                 opacity: 0,

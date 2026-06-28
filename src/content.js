@@ -35,7 +35,7 @@ export const content = {
             viewCampaign: "Request Full Catalogue",
             readyToWear: "Ready to Wear",
             products: [
-                { id: 1, name: "The Midnight Tuxedo", price: "$2,800", img: "/hero-suit.png" },
+                { id: 1, name: "The Midnight Tuxedo", price: "$2,800", img: "/hero-suit.webp" },
                 { id: 2, name: "Royal Navy Pinstripe", price: "$2,400", img: "/suit-1.png" },
                 { id: 3, name: "Charcoal Cashmere", price: "$3,100", img: "https://res.cloudinary.com/dfxh95yzm/image/upload/f_auto,q_auto,w_600/v1769970981/suit-2_r3tvtq.jpg" }
             ]
@@ -111,7 +111,7 @@ export const content = {
             viewCampaign: "اطلب الكتالوج الكامل",
             readyToWear: "جاهزة للارتداء",
             products: [
-                { id: 1, name: "بدلة السهرة السوداء", price: "٢,٨٠٠ دولار", img: "/hero-suit.png" },
+                { id: 1, name: "بدلة السهرة السوداء", price: "٢,٨٠٠ دولار", img: "/hero-suit.webp" },
                 { id: 2, name: "رويال نيفي مقلمة", price: "٢,٤٠٠ دولار", img: "/suit-1.png" },
                 { id: 3, name: "كشمير فحمي فاخر", price: "٣,١٠٠ دولار", img: "https://res.cloudinary.com/dfxh95yzm/image/upload/f_auto,q_auto,w_600/v1769970981/suit-2_r3tvtq.jpg" }
             ]
