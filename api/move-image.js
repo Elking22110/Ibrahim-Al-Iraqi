@@ -17,10 +17,8 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'fromAlbum, toAlbum, and filename are required' });
         }
 
-        // Cloudinary public_ids don't have file extensions
-        const baseName = filename.replace(/\.[^/.]+$/, '');
-        const sourcePublicId = `${GALLERY_FOLDER}/${fromAlbum}/${baseName}`;
-        const targetPublicId = `${GALLERY_FOLDER}/${toAlbum}/${baseName}`;
+        const sourcePublicId = `${GALLERY_FOLDER}/${fromAlbum}/${filename}`;
+        const targetPublicId = `${GALLERY_FOLDER}/${toAlbum}/${filename}`;
 
         console.log(`[api/move-image] Moving ${sourcePublicId} to ${targetPublicId}`);
         await cloudinary.uploader.rename(sourcePublicId, targetPublicId, { overwrite: true });

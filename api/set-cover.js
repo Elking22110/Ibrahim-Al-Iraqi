@@ -37,7 +37,7 @@ export default async function handler(req, res) {
         }
 
         // 2. Rename target image to 'cover'
-        const sourcePublicId = `${albumPath}/${filename.replace(/\.[^/.]+$/, '')}`;
+        const sourcePublicId = `${albumPath}/${filename}`;
         const targetPublicId = `${albumPath}/cover`;
 
         await cloudinary.uploader.rename(sourcePublicId, targetPublicId);

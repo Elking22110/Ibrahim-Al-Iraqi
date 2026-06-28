@@ -14,7 +14,7 @@ export default async function handler(req, res) {
         const { album, name } = req.body;
         if (!album || !name) return res.status(400).json({ error: 'album and name are required' });
 
-        const publicId = `${GALLERY_FOLDER}/${album}/${name.replace(/\.[^/.]+$/, '')}`;
+        const publicId = `${GALLERY_FOLDER}/${album}/${name}`;
         await cloudinary.uploader.destroy(publicId);
 
         return res.status(200).json({ success: true });
