@@ -36,11 +36,13 @@ const AdminDashboard = ({ lang, setLang }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ password: pwInput }),
             });
-            if (res.ok) {
+            const data = await res.json();
+            if (res.ok && data.success) {
                 sessionStorage.setItem(STORAGE_KEY, pwInput);
                 setAuthPw(pwInput);
             } else {
-                setAuthError(lang === 'ar' ? 'كلمة المرور غير صحيحة' : 'Incorrect password');
+                // Show the actual server error message
+                setAuthError(data.error || (lang === 'ar' ? 'كلمة المرور غير صحيحة' : 'Incorrect password'));
             }
         } catch {
             setAuthError(lang === 'ar' ? 'تعذّر الاتصال بالخادم' : 'Could not connect to server');
