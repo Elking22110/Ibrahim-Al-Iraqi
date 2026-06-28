@@ -210,9 +210,12 @@ export default defineConfig({
                         req.on('data', chunk => { body += chunk; });
                         req.on('end', () => {
                             try {
-                                const { album, name } = JSON.parse(body);
+                                const { album, suitId, name } = JSON.parse(body);
                                 if (!album) throw new Error('Album name is required');
-                                const targetPath = path.resolve(galleryDir, album, name);
+                                // Support nested suit subfolder
+                                const targetPath = suitId 
+                                    ? path.resolve(galleryDir, album, suitId, name)
+                                    : path.resolve(galleryDir, album, name);
                                 if (fs.existsSync(targetPath)) fs.unlinkSync(targetPath);
                                 regenerateGalleryConfig(__dirname);
                                 res.setHeader('Content-Type', 'application/json');
@@ -283,11 +286,14 @@ export default defineConfig({
                         req.on('data', chunk => { body += chunk; });
                         req.on('end', () => {
                             try {
-                                const { album, filename } = JSON.parse(body);
+                                const { album, suitId, filename } = JSON.parse(body);
                                 if (!album || !filename) throw new Error('Album and filename are required');
 
-                                const albumDir = path.resolve(galleryDir, album);
-                                if (!fs.existsSync(albumDir)) throw new Error('Album directory does not exist');
+                                // Support nested suit subfolder
+                                const albumDir = suitId 
+                                    ? path.resolve(galleryDir, album, suitId) 
+                                    : path.resolve(galleryDir, album);
+                                if (!fs.existsSync(albumDir)) fs.mkdirSync(albumDir, { recursive: true });
 
                                 // 1. Find existing cover file in local directory and rename it to a timestamped name
                                 const files = fs.readdirSync(albumDir);
