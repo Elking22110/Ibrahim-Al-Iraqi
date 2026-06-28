@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FaTrash, FaUpload, FaArrowLeft, FaSpinner, FaFolderPlus, FaEdit, FaFolder, FaImages, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaTrash, FaUpload, FaArrowLeft, FaSpinner, FaFolderPlus, FaEdit, FaFolder, FaImages, FaLock, FaEye, FaEyeSlash, FaCloudUploadAlt } from 'react-icons/fa';
+import { galleryAlbums as staticAlbums } from '../galleryConfig';
 
 const STORAGE_KEY = 'admin_auth_pw';
 
@@ -20,9 +21,78 @@ const AdminDashboard = ({ lang, setLang }) => {
     const [statusMessage, setStatusMessage] = useState('');
     const [dragActive, setDragActive] = useState(false);
 
+    // ─── Migration State ──────────────────────────────────────────
+    const [migrationLoading, setMigrationLoading] = useState(false);
+    const [migrationProgress, setMigrationProgress] = useState('');
+
     const authHeaders = {
         'Content-Type': 'application/json',
         'x-admin-password': authPw,
+    };
+
+    const handleMigrateLocalImages = async () => {
+        const confirmMsg = lang === 'ar'
+            ? 'هل تريد استيراد الـ 23 صورة الافتراضية للموقع ورفعهم إلى Cloudinary تلقائياً؟'
+            : 'Do you want to import the 23 default website images and upload them to Cloudinary automatically?';
+        if (!window.confirm(confirmMsg)) return;
+
+        setMigrationLoading(true);
+        setStatusMessage('');
+        try {
+            let totalImages = 0;
+            staticAlbums.forEach(a => totalImages += a.images.length);
+            let uploadedCount = 0;
+
+            for (const album of staticAlbums) {
+                // 1. Create the album
+                setMigrationProgress(lang === 'ar' ? `جاري إنشاء قسم ${album.name}...` : `Creating category ${album.name}...`);
+                await fetch('/api/create-album', {
+                    method: 'POST',
+                    headers: authHeaders,
+                    body: JSON.stringify({ name: album.name })
+                });
+
+                // 2. Upload images one by one
+                for (const imgName of album.images) {
+                    uploadedCount++;
+                    setMigrationProgress(
+                        lang === 'ar'
+                            ? `جاري رفع صورة ${uploadedCount} من ${totalImages}...`
+                            : `Uploading image ${uploadedCount} of ${totalImages}...`
+                    );
+
+                    const localUrl = `/The Gallery/${encodeURIComponent(album.name)}/${encodeURIComponent(imgName)}`;
+                    const localRes = await fetch(localUrl);
+                    if (!localRes.ok) continue;
+
+                    const blob = await localRes.blob();
+                    const base64Data = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.readAsDataURL(blob);
+                        reader.onloadend = () => resolve(reader.result);
+                    });
+
+                    await fetch('/api/upload', {
+                        method: 'POST',
+                        headers: authHeaders,
+                        body: JSON.stringify({
+                            album: album.name,
+                            name: imgName,
+                            data: base64Data
+                        })
+                    });
+                }
+            }
+
+            setStatusMessage(lang === 'ar' ? '✅ تم استيراد ورفع جميع الصور بنجاح!' : '✅ All default images imported successfully!');
+            await fetchGallery();
+        } catch (err) {
+            console.error(err);
+            setStatusMessage(lang === 'ar' ? '❌ فشل استيراد الصور' : '❌ Failed to import images');
+        } finally {
+            setMigrationLoading(false);
+            setMigrationProgress('');
+        }
     };
 
     // ─── Auth Login ────────────────────────────────────────────────
@@ -367,8 +437,22 @@ const AdminDashboard = ({ lang, setLang }) => {
                         </div>
 
                         {albums.length === 0 ? (
-                            <div className="h-64 border border-dashed border-white/10 rounded-2xl flex items-center justify-center text-gray-500 text-sm">
-                                {lang === 'ar' ? 'لا توجد أقسام بعد. أنشئ قسمك الأول!' : 'No categories yet. Create your first one!'}
+                            <div className="h-72 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-5 text-gray-500 text-sm">
+                                <p>{lang === 'ar' ? 'لا توجد أقسام في التخزين السحابي بعد.' : 'No categories found in cloud storage yet.'}</p>
+                                <button
+                                    onClick={handleMigrateLocalImages}
+                                    disabled={migrationLoading}
+                                    className="px-6 py-3.5 bg-[#D4AF37] hover:bg-[#F2E8C9] disabled:opacity-50 text-black font-black rounded-full flex items-center gap-2 transition-all duration-300 shadow-lg text-xs tracking-wider"
+                                >
+                                    {migrationLoading ? (
+                                        <FaSpinner className="animate-spin" />
+                                    ) : (
+                                        <FaCloudUploadAlt className="text-base" />
+                                    )}
+                                    {migrationLoading 
+                                        ? migrationProgress 
+                                        : (lang === 'ar' ? 'استيراد صور الموقع الحالية إلى السحابة' : 'Import current website images to Cloud')}
+                                </button>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
