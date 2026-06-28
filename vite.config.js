@@ -79,8 +79,18 @@ export default defineConfig({
 
                             albums.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
+                            let catalog = {};
+                            const catalogPath = path.resolve(galleryDir, 'catalog.json');
+                            if (fs.existsSync(catalogPath)) {
+                                try {
+                                    catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
+                                } catch (e) {
+                                    console.error('Failed to parse local catalog:', e);
+                                }
+                            }
+
                             res.setHeader('Content-Type', 'application/json');
-                            res.end(JSON.stringify({ albums }));
+                            res.end(JSON.stringify({ albums, catalog }));
                         } catch (err) {
                             res.statusCode = 500;
                             res.end(JSON.stringify({ error: err.message }));
@@ -262,6 +272,47 @@ export default defineConfig({
                                 }
 
                                 regenerateGalleryConfig(__dirname);
+
+                                res.setHeader('Content-Type', 'application/json');
+                                res.end(JSON.stringify({ success: true }));
+                            } catch (err) {
+                                res.statusCode = 500;
+                                res.end(JSON.stringify({ error: err.message }));
+                            }
+                        });
+
+                    } else if (parsedUrl === '/api/update-product' && req.method === 'POST') {
+                        let body = '';
+                        req.on('data', chunk => { body += chunk; });
+                        req.on('end', () => {
+                            try {
+                                const { filename, metadata } = JSON.parse(body);
+                                if (!filename || !metadata) throw new Error('Missing parameters');
+
+                                const catalogPath = path.resolve(galleryDir, 'catalog.json');
+                                let catalog = {};
+                                if (fs.existsSync(catalogPath)) {
+                                    try {
+                                        catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
+                                    } catch (e) {}
+                                }
+
+                                const key = filename.toLowerCase().replace(/\.[^/.]+$/, '').trim();
+                                catalog[key] = {
+                                    en: {
+                                        name: metadata.nameEn || '',
+                                        desc: metadata.descEn || '',
+                                        price: metadata.priceEn || ''
+                                    },
+                                    ar: {
+                                        name: metadata.nameAr || '',
+                                        desc: metadata.descAr || '',
+                                        price: metadata.priceAr || ''
+                                    }
+                                };
+
+                                fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2), 'utf8');
+                                console.log(`[gallery-api] Updated local product details for ${key}`);
 
                                 res.setHeader('Content-Type', 'application/json');
                                 res.end(JSON.stringify({ success: true }));

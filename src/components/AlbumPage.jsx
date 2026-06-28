@@ -15,7 +15,7 @@ const getImgName = (img) => {
     return typeof img === 'object' ? img.filename : img;
 };
 
-const AlbumPage = ({ albumName, albums, lang, onNavigate }) => {
+const AlbumPage = ({ albumName, albums, lang, onNavigate, productCatalog = {} }) => {
     // Find active album in albums data
     const activeAlbum = albums.find(a => {
         const n = a.name.toLowerCase();
@@ -88,7 +88,7 @@ const AlbumPage = ({ albumName, albums, lang, onNavigate }) => {
                         {imagesToDisplay.map((img, index) => {
                             const filename = getImgName(img);
                             // Get rich metadata for the suit
-                            const meta = getProductMetadata(activeAlbum.name, filename, lang);
+                            const meta = getProductMetadata(activeAlbum.name, filename, lang, productCatalog);
 
                             return (
                                 <motion.div

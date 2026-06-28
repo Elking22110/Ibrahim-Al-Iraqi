@@ -15,11 +15,13 @@ const AdminDashboard = ({ lang, setLang }) => {
 
     // ─── Gallery State ────────────────────────────────────────────
     const [albums, setAlbums] = useState([]);
+    const [catalog, setCatalog] = useState({});
     const [activeAlbumName, setActiveAlbumName] = useState(null);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [statusMessage, setStatusMessage] = useState('');
     const [dragActive, setDragActive] = useState(false);
+    const [editingImage, setEditingImage] = useState(null);
 
     // ─── Migration State ──────────────────────────────────────────
     const [migrationLoading, setMigrationLoading] = useState(false);
@@ -201,6 +203,7 @@ const AdminDashboard = ({ lang, setLang }) => {
             const res = await fetch(`/api/gallery?t=${Date.now()}`);
             const data = await res.json();
             if (data.albums) setAlbums(data.albums);
+            if (data.catalog) setCatalog(data.catalog);
         } catch (error) {
             console.error('Error fetching gallery:', error);
             setStatusMessage(lang === 'ar' ? 'فشل تحميل الأقسام من الخادم' : 'Failed to fetch categories from server');
@@ -347,6 +350,41 @@ const AdminDashboard = ({ lang, setLang }) => {
         } catch {
             setStatusMessage(lang === 'ar' ? '❌ فشل تعديل الاسم' : '❌ Failed to rename');
         } finally { setLoading(false); }
+    };
+
+    // ─── Suit Metadata Updates ──────────────────────────────────────
+    const handleUpdateProduct = async (e) => {
+        e.preventDefault();
+        if (!editingImage) return;
+        try {
+            setLoading(true);
+            const res = await fetch('/api/update-product', {
+                method: 'POST',
+                headers: authHeaders,
+                body: JSON.stringify({
+                    filename: editingImage.filename,
+                    metadata: {
+                        nameAr: editingImage.nameAr,
+                        nameEn: editingImage.nameEn,
+                        descAr: editingImage.descAr,
+                        descEn: editingImage.descEn,
+                        priceAr: editingImage.priceAr,
+                        priceEn: editingImage.priceEn
+                    }
+                })
+            });
+            const result = await res.json();
+            if (result.success) {
+                setStatusMessage(lang === 'ar' ? '✅ تم تحديث تفاصيل البدلة بنجاح!' : '✅ Suit details updated successfully!');
+                setEditingImage(null);
+                await fetchGallery();
+            } else throw new Error(result.error);
+        } catch (err) {
+            console.error(err);
+            setStatusMessage(lang === 'ar' ? '❌ فشل تحديث التفاصيل' : '❌ Failed to update suit details');
+        } finally {
+            setLoading(false);
+        }
     };
 
     // ─── Image Upload ──────────────────────────────────────────────
@@ -716,6 +754,25 @@ const AdminDashboard = ({ lang, setLang }) => {
                                                                 {lang === 'ar' ? 'تعيين كغلاف' : 'Set as Cover'}
                                                             </button>
                                                         )}
+
+                                                        <button onClick={() => {
+                                                             const filename = getImgName(img);
+                                                             const key = filename.toLowerCase().replace(/\.[^/.]+$/, '').trim();
+                                                             const existing = catalog[key] || {};
+                                                             setEditingImage({
+                                                                 filename,
+                                                                 nameAr: existing.ar?.name || '',
+                                                                 nameEn: existing.en?.name || '',
+                                                                 descAr: existing.ar?.desc || '',
+                                                                 descEn: existing.en?.desc || '',
+                                                                 priceAr: existing.ar?.price || '',
+                                                                 priceEn: existing.en?.price || ''
+                                                             });
+                                                         }}
+                                                             className="w-full py-1.5 bg-white/5 hover:bg-[#D4AF37] text-white hover:text-black border border-white/10 hover:border-[#D4AF37] rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold transition-all duration-300">
+                                                             <FaEdit />
+                                                             {lang === 'ar' ? 'تعديل التفاصيل والسعر' : 'Edit Specs & Price'}
+                                                         </button>
                                                         
                                                         {/* Move Category Select Dropdown */}
                                                         <select
@@ -758,6 +815,133 @@ const AdminDashboard = ({ lang, setLang }) => {
                     </div>
                 )}
             </div>
+
+            {/* Edit Metadata Modal */}
+            {editingImage && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-6">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="w-full max-w-2xl bg-zinc-900 border border-white/10 rounded-2xl p-8 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl"
+                    >
+                        <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                <FaEdit className="text-[#D4AF37]" />
+                                {lang === 'ar' ? 'تعديل تفاصيل وأسعار البدلة' : 'Edit Suit Details & Price'}
+                            </h3>
+                            <button
+                                onClick={() => setEditingImage(null)}
+                                className="text-gray-400 hover:text-white transition-colors text-lg"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleUpdateProduct} className="space-y-6">
+                            {/* Sub-header with filename */}
+                            <div className="text-xs text-gray-500 uppercase tracking-widest">
+                                {lang === 'ar' ? 'الملف:' : 'File:'} {editingImage.filename}
+                            </div>
+
+                            {/* Two Column Grid for Arabic & English Translation Inputs */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-right">
+                                
+                                {/* Arabic Inputs */}
+                                <div className="space-y-4 border-r border-white/5 pr-6" dir="rtl">
+                                    <h4 className="text-xs uppercase tracking-widest text-[#D4AF37] font-black mb-2">
+                                        التفاصيل باللغة العربية
+                                    </h4>
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1 text-right">اسم البدلة</label>
+                                        <input
+                                            type="text"
+                                            value={editingImage.nameAr}
+                                            onChange={e => setEditingImage({ ...editingImage, nameAr: e.target.value })}
+                                            className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#D4AF37] focus:outline-none text-right"
+                                            placeholder="مثال: تكسيدو الكحلي الملكي"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1 text-right">السعر</label>
+                                        <input
+                                            type="text"
+                                            value={editingImage.priceAr}
+                                            onChange={e => setEditingImage({ ...editingImage, priceAr: e.target.value })}
+                                            className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#D4AF37] focus:outline-none text-right"
+                                            placeholder="مثال: ٢,٨٥٠ دولار"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1 text-right">فلسفة التصميم والوصف</label>
+                                        <textarea
+                                            rows={4}
+                                            value={editingImage.descAr}
+                                            onChange={e => setEditingImage({ ...editingImage, descAr: e.target.value })}
+                                            className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#D4AF37] focus:outline-none resize-none text-right"
+                                            placeholder="وصف فخم يعبر عن جودة البدلة والنسيج..."
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* English Inputs */}
+                                <div className="space-y-4 text-left" dir="ltr">
+                                    <h4 className="text-xs uppercase tracking-widest text-[#D4AF37] font-black mb-2">
+                                        English Specifications
+                                    </h4>
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1 text-left">Suit Name</label>
+                                        <input
+                                            type="text"
+                                            value={editingImage.nameEn}
+                                            onChange={e => setEditingImage({ ...editingImage, nameEn: e.target.value })}
+                                            className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#D4AF37] focus:outline-none text-left"
+                                            placeholder="e.g. Royal Navy Tuxedo"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1 text-left">Price</label>
+                                        <input
+                                            type="text"
+                                            value={editingImage.priceEn}
+                                            onChange={e => setEditingImage({ ...editingImage, priceEn: e.target.value })}
+                                            className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#D4AF37] focus:outline-none text-left"
+                                            placeholder="e.g. $2,850"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1 text-left">Design Philosophy / Desc</label>
+                                        <textarea
+                                            rows={4}
+                                            value={editingImage.descEn}
+                                            onChange={e => setEditingImage({ ...editingImage, descEn: e.target.value })}
+                                            className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#D4AF37] focus:outline-none resize-none text-left"
+                                            placeholder="Luxury description outlining quality weave and canvas..."
+                                        />
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            {/* Form Actions */}
+                            <div className="flex gap-4 border-t border-white/10 pt-6">
+                                <button
+                                    type="button"
+                                    onClick={() => setEditingImage(null)}
+                                    className="flex-1 py-3 border border-white/10 hover:bg-white/5 text-white rounded-lg text-sm font-bold transition-all"
+                                >
+                                    {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 py-3 bg-[#D4AF37] hover:bg-[#F2E8C9] text-black rounded-lg text-sm font-black transition-all shadow-lg shadow-[#D4AF37]/5"
+                                >
+                                    {lang === 'ar' ? 'حفظ التعديلات' : 'Save Details'}
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 };

@@ -15,7 +15,7 @@ const getImgName = (img) => {
     return typeof img === 'object' ? img.filename : img;
 };
 
-const ProductDetailPage = ({ albumName, imgName, albums, lang, onNavigate }) => {
+const ProductDetailPage = ({ albumName, imgName, albums, lang, onNavigate, productCatalog = {} }) => {
     const [isZoomed, setIsZoomed] = useState(false);
 
     // Find active album in albums data
@@ -37,7 +37,7 @@ const ProductDetailPage = ({ albumName, imgName, albums, lang, onNavigate }) => 
     const prevImg = imgIndex > 0 ? activeAlbum.images[imgIndex - 1] : null;
     const nextImg = activeAlbum?.images && imgIndex < activeAlbum.images.length - 1 ? activeAlbum.images[imgIndex + 1] : null;
 
-    const meta = getProductMetadata(activeAlbum?.name || albumName, imgName, lang);
+    const meta = getProductMetadata(activeAlbum?.name || albumName, imgName, lang, productCatalog);
 
     const handleGoBack = () => {
         onNavigate(`/album/${albumName}`);

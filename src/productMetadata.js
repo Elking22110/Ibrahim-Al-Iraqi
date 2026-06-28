@@ -103,13 +103,25 @@ const PRESET_CATALOG = {
 };
 
 // Generates luxury product properties dynamically if not predefined
-export const getProductMetadata = (albumName, imgFilename, lang = 'ar') => {
+export const getProductMetadata = (albumName, imgFilename, lang = 'ar', customCatalog = {}) => {
     if (!imgFilename) return { name: '', desc: '', price: '' };
 
     // Normalize filename key
     const key = imgFilename.toLowerCase().replace(/\.[^/.]+$/, '').trim();
 
-    // 1. Check presets
+    // 1. Check custom catalog from database first
+    if (customCatalog && customCatalog[key]) {
+        const item = customCatalog[key][lang];
+        if (item && (item.name || item.desc || item.price)) {
+            return {
+                name: item.name || '',
+                desc: item.desc || '',
+                price: item.price || ''
+            };
+        }
+    }
+
+    // 2. Check presets
     if (PRESET_CATALOG[key]) {
         return PRESET_CATALOG[key][lang];
     }

@@ -26,6 +26,7 @@ function App() {
     const [lang, setLang] = useState('ar');
     const [currentPath, setCurrentPath] = useState(window.location.pathname);
     const [galleryAlbums, setGalleryAlbums] = useState(staticAlbums);
+    const [productCatalog, setProductCatalog] = useState({});
     const t = content[lang];
 
     const handleNavigate = (path) => {
@@ -50,6 +51,9 @@ function App() {
             .then(data => {
                 if (data.albums && data.albums.length > 0) {
                     setGalleryAlbums(data.albums);
+                }
+                if (data.catalog) {
+                    setProductCatalog(data.catalog);
                 }
             })
             .catch(() => {
@@ -93,7 +97,7 @@ function App() {
                     exit={{ opacity: 0, y: -15 }}
                     transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                 >
-                    <AlbumPage albumName={albumName} albums={galleryAlbums} lang={lang} onNavigate={handleNavigate} />
+                    <AlbumPage albumName={albumName} albums={galleryAlbums} lang={lang} onNavigate={handleNavigate} productCatalog={productCatalog} />
                 </motion.div>
             );
         }
@@ -110,7 +114,7 @@ function App() {
                     exit={{ opacity: 0, scale: 0.98, filter: 'blur(5px)' }}
                     transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                 >
-                    <ProductDetailPage albumName={albumName} imgName={imgName} albums={galleryAlbums} lang={lang} onNavigate={handleNavigate} />
+                    <ProductDetailPage albumName={albumName} imgName={imgName} albums={galleryAlbums} lang={lang} onNavigate={handleNavigate} productCatalog={productCatalog} />
                 </motion.div>
             );
         }

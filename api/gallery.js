@@ -59,9 +59,21 @@ export default async function handler(req, res) {
             return { name: albumName, images };
         }));
 
+        // Fetch metadata catalog from Cloudinary
+        const catalogUrl = cloudinary.url(`${GALLERY_FOLDER}/catalog.json`, { resource_type: 'raw', secure: true });
+        let catalog = {};
+        try {
+            const response = await fetch(catalogUrl);
+            if (response.ok) {
+                catalog = await response.json();
+            }
+        } catch (fetchErr) {
+            console.warn('[api/gallery] Catalog fetch failed/empty:', fetchErr.message);
+        }
+
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        return res.status(200).json({ albums });
+        return res.status(200).json({ albums, catalog });
 
     } catch (err) {
         console.error('[api/gallery] Error:', err);
