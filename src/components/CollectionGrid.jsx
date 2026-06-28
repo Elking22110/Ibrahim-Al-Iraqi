@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ScrollFloat from './ScrollFloat';
 
@@ -22,6 +22,13 @@ const getAlbumCover = (album) => {
 const CollectionGrid = ({ t, lang, albums = [] }) => {
     const [activeAlbumName, setActiveAlbumName] = useState(null);
     const [isExpanded, setIsExpanded] = useState(false);
+    const photosAnchorRef = useRef(null);
+
+    const scrollToPhotos = () => {
+        setTimeout(() => {
+            photosAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 350); // 350ms delay accommodates the expand transition beautifully
+    };
 
     // Default placeholders for the 4 vertical accordion columns
     const defaultCovers = [
@@ -147,6 +154,7 @@ const CollectionGrid = ({ t, lang, albums = [] }) => {
                                 onClick={() => {
                                     setActiveAlbumName(col.name);
                                     setIsExpanded(true); // Auto expand to show photos
+                                    scrollToPhotos();
                                 }}
                                 className="relative flex-1 group overflow-hidden rounded-sm cursor-pointer border border-white/5"
                                 layout
@@ -187,7 +195,13 @@ const CollectionGrid = ({ t, lang, albums = [] }) => {
                     <div className="flex justify-center mb-12">
                         <motion.button
                             layout
-                            onClick={() => setIsExpanded(!isExpanded)}
+                            onClick={() => {
+                                const nextVal = !isExpanded;
+                                setIsExpanded(nextVal);
+                                if (nextVal) {
+                                    scrollToPhotos();
+                                }
+                            }}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             className="px-8 py-3.5 border border-[#D4AF37] text-[#D4AF37] uppercase tracking-widest text-xs font-bold hover:bg-[#D4AF37] hover:text-black transition-colors duration-300 rounded-full"
@@ -199,6 +213,9 @@ const CollectionGrid = ({ t, lang, albums = [] }) => {
                         </motion.button>
                     </div>
                 )}
+
+                {/* Scroll Anchor */}
+                <div ref={photosAnchorRef} className="scroll-mt-24" />
 
                 {/* Selected Album Images Grid */}
                 <AnimatePresence>
