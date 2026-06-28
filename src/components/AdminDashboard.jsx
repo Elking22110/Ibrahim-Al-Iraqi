@@ -191,47 +191,53 @@ const AdminDashboard = ({ lang, setLang }) => {
         if (isAuthed) fetchGallery();
     }, [isAuthed]);
 
-    const activeAlbum = albums.find(a => a.name === activeAlbumName);
-
-    // ─── Album CRUD ────────────────────────────────────────────────
-    const handleCreateAlbum = async () => {
-        const albumName = window.prompt(lang === 'ar' ? 'أدخل اسم القسم الجديد:' : 'Enter new category name:');
-        if (!albumName?.trim()) return;
-        try {
-            setLoading(true);
-            const res = await fetch('/api/create-album', {
-                method: 'POST', headers: authHeaders,
-                body: JSON.stringify({ name: albumName.trim() })
-            });
-            const result = await res.json();
-            if (result.success) {
-                setStatusMessage(lang === 'ar' ? `✅ تم إنشاء القسم "${albumName}"` : `✅ Category "${albumName}" created`);
-                await fetchGallery();
-            } else throw new Error(result.error);
-        } catch (err) {
-            setStatusMessage(lang === 'ar' ? '❌ فشل إنشاء القسم' : '❌ Failed to create category');
-        } finally { setLoading(false); }
+    const getAlbumDataForCategory = (id) => {
+        return albums.find(a => {
+            const n = a.name.toLowerCase();
+            if (id === 'Classic') return n.includes('classic') || n.includes('collection') || n.includes('كلاسيك');
+            if (id === 'Wedding') return n.includes('wedding') || n.includes('زفاف');
+            if (id === 'Casual') return n.includes('casual') || n.includes('كاجوال');
+            if (id === 'Luxury') return n.includes('luxury') || n.includes('faher') || n.includes('فاخر');
+            return false;
+        });
     };
 
-    const handleDeleteAlbum = async (albumName) => {
+    const dashboardAlbums = [
+        { id: 'Classic', defaultName: lang === 'ar' ? 'كلاسيكي' : 'Classic' },
+        { id: 'Wedding', defaultName: lang === 'ar' ? 'بدل زفاف' : 'Wedding Suits' },
+        { id: 'Casual', defaultName: lang === 'ar' ? 'كاجوال' : 'Casual' },
+        { id: 'Luxury', defaultName: lang === 'ar' ? 'بدل فاخرة' : 'Luxury Suits' }
+    ].map(cat => {
+        const realAlbum = getAlbumDataForCategory(cat.id);
+        return {
+            id: realAlbum ? realAlbum.name : cat.id,
+            displayName: cat.defaultName,
+            images: realAlbum ? realAlbum.images : []
+        };
+    });
+
+    const activeAlbum = dashboardAlbums.find(a => a.id === activeAlbumName);
+
+    // ─── Album Clear ──────────────────────────────────────────────
+    const handleClearAlbum = async (albumId) => {
         const msg = lang === 'ar'
-            ? `تحذير: هل أنت متأكد من حذف القسم "${albumName}" بالكامل؟ سيُحذف كل محتواه نهائياً!`
-            : `WARNING: Delete category "${albumName}"? All images inside will be permanently deleted!`;
+            ? 'هل أنت متأكد من حذف جميع الصور في هذا القسم؟ لا يمكن التراجع عن هذا الإجراء!'
+            : 'Are you sure you want to delete all images in this category? This action cannot be undone!';
         if (!window.confirm(msg)) return;
         try {
             setLoading(true);
             const res = await fetch('/api/delete-album', {
                 method: 'POST', headers: authHeaders,
-                body: JSON.stringify({ name: albumName })
+                body: JSON.stringify({ name: albumId })
             });
             const result = await res.json();
             if (result.success) {
-                setStatusMessage(lang === 'ar' ? '✅ تم حذف القسم' : '✅ Category deleted');
-                if (activeAlbumName === albumName) setActiveAlbumName(null);
+                setStatusMessage(lang === 'ar' ? '✅ تم إفراغ القسم بنجاح' : '✅ Category cleared successfully');
+                if (activeAlbumName === albumId) setActiveAlbumName(null);
                 await fetchGallery();
             } else throw new Error(result.error);
         } catch {
-            setStatusMessage(lang === 'ar' ? '❌ فشل حذف القسم' : '❌ Failed to delete category');
+            setStatusMessage(lang === 'ar' ? '❌ فشل إفراغ القسم' : '❌ Failed to clear category');
         } finally { setLoading(false); }
     };
 
@@ -460,7 +466,7 @@ const AdminDashboard = ({ lang, setLang }) => {
 
             {/* Workspace */}
             <div className="max-w-7xl mx-auto">
-                {loading && albums.length === 0 ? (
+                {loading && dashboardAlbums.length === 0 ? (
                     <div className="h-96 flex flex-col items-center justify-center gap-3 text-gray-500">
                         <FaSpinner className="animate-spin text-[#D4AF37] text-3xl" />
                         <p>{lang === 'ar' ? 'جاري التحميل...' : 'Loading...'}</p>
@@ -474,68 +480,33 @@ const AdminDashboard = ({ lang, setLang }) => {
                                 <FaImages className="text-[#D4AF37]" />
                                 {lang === 'ar' ? 'الأقسام الحالية' : 'Available Categories'}
                             </h2>
-                            <button onClick={handleCreateAlbum}
-                                className="px-6 py-3 bg-[#D4AF37] text-black hover:bg-[#F2E8C9] rounded-full flex items-center gap-2 text-sm font-black transition-all duration-300 shadow-lg">
-                                <FaFolderPlus />
-                                {lang === 'ar' ? 'إنشاء قسم جديد' : 'New Category'}
-                            </button>
                         </div>
 
-                        {albums.length === 0 ? (
-                            <div className="h-72 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-5 text-gray-500 text-sm">
-                                <p>{lang === 'ar' ? 'لا توجد أقسام في التخزين السحابي بعد.' : 'No categories found in cloud storage yet.'}</p>
-                                <button
-                                    onClick={handleMigrateLocalImages}
-                                    disabled={migrationLoading}
-                                    className="px-6 py-3.5 bg-[#D4AF37] hover:bg-[#F2E8C9] disabled:opacity-50 text-black font-black rounded-full flex items-center gap-2 transition-all duration-300 shadow-lg text-xs tracking-wider"
-                                >
-                                    {migrationLoading ? (
-                                        <FaSpinner className="animate-spin" />
-                                    ) : (
-                                        <FaCloudUploadAlt className="text-base" />
-                                    )}
-                                    {migrationLoading 
-                                        ? migrationProgress 
-                                        : (lang === 'ar' ? 'استيراد صور الموقع الحالية إلى السحابة' : 'Import current website images to Cloud')}
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                {albums.map((album, idx) => (
-                                    <div key={idx} className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl hover:border-[#D4AF37]/50 transition-all duration-300 flex flex-col justify-between group">
-                                        <div className="space-y-4">
-                                            <div className="flex justify-between items-start">
-                                                <div className="p-4 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-xl text-[#D4AF37] text-3xl">
-                                                    <FaFolder />
-                                                </div>
-                                                <span className="px-3 py-1 bg-white/5 border border-white/10 text-xs rounded-full font-bold">
-                                                    {album.images.length} {lang === 'ar' ? 'صورة' : 'photos'}
-                                                </span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                            {dashboardAlbums.map((album, idx) => (
+                                <div key={idx} className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl hover:border-[#D4AF37]/50 transition-all duration-300 flex flex-col justify-between group">
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-start">
+                                            <div className="p-4 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-xl text-[#D4AF37] text-3xl">
+                                                <FaFolder />
                                             </div>
-                                            <h3 className="text-xl font-bold text-white group-hover:text-[#D4AF37] transition-colors truncate">
-                                                {getAlbumDisplayName(album.name, lang)}
-                                            </h3>
+                                            <span className="px-3 py-1 bg-white/5 border border-white/10 text-xs rounded-full font-bold">
+                                                {album.images.length} {lang === 'ar' ? 'صورة' : 'photos'}
+                                            </span>
                                         </div>
-                                        <div className="flex gap-3 mt-8 border-t border-white/5 pt-4">
-                                            <button onClick={() => setActiveAlbumName(album.name)}
-                                                className="flex-1 py-2 bg-white/5 hover:bg-[#D4AF37] text-white hover:text-black border border-white/10 hover:border-[#D4AF37] rounded-lg text-xs font-bold transition-all duration-300">
-                                                {lang === 'ar' ? 'دخول وإدارة الصور' : 'Manage Images'}
-                                            </button>
-                                            <button onClick={() => handleRenameAlbum(album.name)}
-                                                className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
-                                                title={lang === 'ar' ? 'تعديل الاسم' : 'Rename'}>
-                                                <FaEdit />
-                                            </button>
-                                            <button onClick={() => handleDeleteAlbum(album.name)}
-                                                className="p-2.5 bg-red-950/20 hover:bg-red-600 border border-red-500/20 rounded-lg text-red-500 hover:text-white transition-colors"
-                                                title={lang === 'ar' ? 'حذف القسم' : 'Delete'}>
-                                                <FaTrash />
-                                            </button>
-                                        </div>
+                                        <h3 className="text-xl font-bold text-white group-hover:text-[#D4AF37] transition-colors truncate">
+                                            {album.displayName}
+                                        </h3>
                                     </div>
-                                ))}
-                            </div>
-                        )}
+                                    <div className="flex gap-3 mt-8 border-t border-white/5 pt-4">
+                                        <button onClick={() => setActiveAlbumName(album.id)}
+                                            className="w-full py-2.5 bg-white/5 hover:bg-[#D4AF37] text-white hover:text-black border border-white/10 hover:border-[#D4AF37] rounded-lg text-xs font-bold transition-all duration-300">
+                                            {lang === 'ar' ? 'دخول وإدارة الصور' : 'Manage Images'}
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                 ) : (
@@ -550,10 +521,6 @@ const AdminDashboard = ({ lang, setLang }) => {
                                         <FaUpload className="text-[#D4AF37]" />
                                         {lang === 'ar' ? 'رفع صور' : 'Upload Images'}
                                     </h2>
-                                    <button onClick={() => handleRenameAlbum(activeAlbumName)}
-                                        className="text-xs text-gray-400 hover:text-[#D4AF37] flex items-center gap-1.5 transition-colors">
-                                        <FaEdit /> {lang === 'ar' ? 'تغيير الاسم' : 'Rename'}
-                                    </button>
                                 </div>
 
                                 <form
@@ -592,10 +559,10 @@ const AdminDashboard = ({ lang, setLang }) => {
                                 <h3 className="text-sm font-bold text-red-500 mb-3">
                                     {lang === 'ar' ? 'منطقة الخطورة' : 'Danger Zone'}
                                 </h3>
-                                <button onClick={() => handleDeleteAlbum(activeAlbumName)}
+                                <button onClick={() => handleClearAlbum(activeAlbumName)}
                                     className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2">
                                     <FaTrash />
-                                    {lang === 'ar' ? 'حذف هذا الألبوم بالكامل' : 'Delete Entire Category'}
+                                    {lang === 'ar' ? 'إفراغ هذا القسم من الصور' : 'Clear Category Images'}
                                 </button>
                             </div>
                         </div>
