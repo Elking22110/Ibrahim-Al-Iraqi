@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { FaTrash, FaUpload, FaArrowLeft, FaSpinner, FaFolderPlus, FaEdit, FaFolder, FaImages, FaLock, FaEye, FaEyeSlash, FaCloudUploadAlt, FaStar, FaRegStar } from 'react-icons/fa';
 import { galleryAlbums as staticAlbums } from '../galleryConfig';
 
