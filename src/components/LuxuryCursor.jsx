@@ -38,21 +38,21 @@ const LuxuryCursor = () => {
         <>
             {/* Main Ring - Physics based */}
             <motion.div
-                className="fixed top-0 left-0 w-8 h-8 border border-[#C5A880] rounded-full pointer-events-none z-[100] hidden md:block mix-blend-difference"
+                className="fixed top-0 left-0 w-8 h-8 border border-[#D4AF37] rounded-full pointer-events-none z-[100] hidden md:block mix-blend-difference"
                 style={{
                     x: cursorXSpring,
                     y: cursorYSpring,
                 }}
                 animate={{
                     scale: isHovering ? 2.5 : 1,
-                    borderColor: isHovering ? "#ffffff" : "#C5A880",
+                    borderColor: isHovering ? "#ffffff" : "#D4AF37",
                     backgroundColor: isHovering ? "rgba(255,255,255,0.1)" : "transparent"
                 }}
                 transition={{ duration: 0.2 }}
             />
 
             <motion.div
-                className="fixed top-0 left-0 w-2 h-2 bg-[#C5A880] rounded-full pointer-events-none z-[100] hidden md:block"
+                className="fixed top-0 left-0 w-2 h-2 bg-[#D4AF37] rounded-full pointer-events-none z-[100] hidden md:block"
                 style={{
                     x: cursorX,
                     y: cursorY,

@@ -110,7 +110,7 @@ const ImageShowcase = ({ t, lang }) => {
                 className="flex flex-col md:flex-row justify-between items-end mb-20 border-b border-gray-800 pb-10"
             >
                 <div className="max-w-md animate-showcase-text">
-                    <h3 className="text-4xl font-serif mb-4 text-white">
+                    <h3 className="text-4xl font-serif mb-4 text-[#f5f5f0]">
                         {t?.title || "Uncompromising Detail"}
                     </h3>
                     <p className="text-gray-400 leading-relaxed">
@@ -118,7 +118,7 @@ const ImageShowcase = ({ t, lang }) => {
                     </p>
                 </div>
                 <div className="mt-8 md:mt-0 animate-showcase-text">
-                    <span className="block text-xs uppercase tracking-widest text-[#C5A880]">
+                    <span className="block text-xs uppercase tracking-widest text-[#D4AF37]">
                         {t?.est || "Est. 2024"}
                     </span>
                 </div>
@@ -140,14 +140,14 @@ const ImageShowcase = ({ t, lang }) => {
                     </div>
                     <div className="flex justify-between items-center animate-details-1">
                         <div>
-                            <h4 className="text-xl font-bold mb-1 text-white">
+                            <h4 className="text-xl font-bold mb-1 text-[#f5f5f0]">
                                 {t?.item1Title || "Super 150s Wool"}
                             </h4>
                             <p className="text-xs text-gray-500 uppercase tracking-wider">
                                 {t?.item1Desc || "Texture / Close-up"}
                             </p>
                         </div>
-                        <span className="text-2xl font-serif text-gray-600 group-hover:text-white transition-colors">01</span>
+                        <span className="text-2xl font-serif text-gray-600 group-hover:text-[#f5f5f0] transition-colors">01</span>
                     </div>
                 </div>
 
@@ -164,14 +164,14 @@ const ImageShowcase = ({ t, lang }) => {
                     </div>
                     <div className="flex justify-between items-center animate-details-2">
                         <div>
-                            <h4 className="text-xl font-bold mb-1 text-white">
+                            <h4 className="text-xl font-bold mb-1 text-[#f5f5f0]">
                                 {t?.item2Title || "Modern Silhouette"}
                             </h4>
                             <p className="text-xs text-gray-500 uppercase tracking-wider">
                                 {t?.item2Desc || "Fit / Style"}
                             </p>
                         </div>
-                        <span className="text-2xl font-serif text-gray-600 group-hover:text-white transition-colors">02</span>
+                        <span className="text-2xl font-serif text-gray-600 group-hover:text-[#f5f5f0] transition-colors">02</span>
                     </div>
                 </div>
 

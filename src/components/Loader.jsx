@@ -8,9 +8,30 @@ const Loader = ({ onComplete, t, lang }) => {
         const video = videoRef.current;
         if (!video) return;
 
-        // Keep video muted at all times
-        video.muted = true;
-        video.play().catch(e => console.warn("Muted intro video autoplay.", e));
+        // 1. Try to play with sound immediately
+        video.muted = false;
+        video.play()
+            .then(() => {
+                // Success: Audio is playing
+            })
+            .catch((error) => {
+                console.warn("Autoplay with sound blocked. Muting and retrying.", error);
+                video.muted = true;
+                video.play().catch(e => console.error("Video playback failed completely", e));
+
+                // 2. Fallback: Unmute on FIRST interaction
+                const enableSound = () => {
+                    video.muted = false;
+                    video.volume = 1.0;
+                    document.removeEventListener('click', enableSound);
+                    document.removeEventListener('touchstart', enableSound);
+                    document.removeEventListener('keydown', enableSound);
+                };
+
+                document.addEventListener('click', enableSound);
+                document.addEventListener('touchstart', enableSound);
+                document.addEventListener('keydown', enableSound);
+            });
     }, []);
 
     return (
@@ -22,8 +43,9 @@ const Loader = ({ onComplete, t, lang }) => {
                 transition: { duration: 1.5, ease: "easeInOut" }
             }}
         >
+            {/* Ambient Background Light (Breathing) */}
             <motion.div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#C5A880]/5 rounded-full blur-[100px]"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#D4AF37]/5 rounded-full blur-[100px]"
                 animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             />
@@ -75,7 +97,7 @@ const Loader = ({ onComplete, t, lang }) => {
                         animate={{ y: "0%" }}
                         transition={{ duration: 1.2, delay: 0.5, ease: [0.22, 1, 0.36, 1] }} // Custom springy ease
                     >
-                        <h1 className="text-3xl md:text-6xl font-bodoni font-normal tracking-[0.05em] text-[#C5A880] whitespace-nowrap leading-tight">
+                        <h1 className="text-3xl md:text-6xl font-bodoni font-normal tracking-[0.05em] text-[#D4AF37] whitespace-nowrap leading-tight">
                             IBRAHIM AL-IRAQI
                         </h1>
                     </motion.div>
@@ -88,7 +110,7 @@ const Loader = ({ onComplete, t, lang }) => {
                     initial={{ x: "-100%" }}
                     animate={{ x: "0%" }}
                     transition={{ duration: 2.2, ease: "easeInOut" }}
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-[#C5A880] to-transparent"
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent"
                 />
             </div>
 
@@ -96,7 +118,7 @@ const Loader = ({ onComplete, t, lang }) => {
                 initial={{ opacity: 0, letterSpacing: "0.1em" }}
                 animate={{ opacity: 1, letterSpacing: "0.3em" }}
                 transition={{ duration: 2, delay: 0.5 }}
-                className="absolute bottom-12 text-[10px] uppercase text-[#C5A880]/60 font-bodoni"
+                className="absolute bottom-12 text-[10px] uppercase text-[#D4AF37]/60 font-bodoni"
             >
                 Defining Luxury
             </motion.p>

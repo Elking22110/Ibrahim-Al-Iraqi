@@ -30,7 +30,7 @@ const CollectionGrid = ({ t, lang }) => {
                         initial={{ opacity: 0, y: 15 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="text-[#C5A880] uppercase tracking-[0.4em] mb-4 text-xs font-bold"
+                        className="text-[#D4AF37] uppercase tracking-[0.4em] mb-4 text-xs font-bold"
                     >
                         JOURNAL
                     </motion.h3>
@@ -41,7 +41,7 @@ const CollectionGrid = ({ t, lang }) => {
                         scrollEnd='bottom bottom-=20%'
                         stagger={0.1}
                         containerClassName={`mb-6 py-4 ${lang === 'ar' ? 'font-amiri' : 'font-serif'}`}
-                        textClassName="text-5xl md:text-7xl text-white"
+                        textClassName="text-5xl md:text-7xl text-[#f5f5f0]"
                     >
                         {t?.title || "The Collection"}
                     </ScrollFloat>
@@ -70,7 +70,7 @@ const CollectionGrid = ({ t, lang }) => {
 
                             {/* Optional Label Overlay */}
                             <div className="absolute bottom-0 left-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-200">
-                                <span className="text-[#C5A880] text-xs tracking-[0.3em] font-bold uppercase">View</span>
+                                <span className="text-[#D4AF37] text-xs tracking-[0.3em] font-bold uppercase">View</span>
                             </div>
                         </motion.div>
                     ))}
@@ -83,7 +83,7 @@ const CollectionGrid = ({ t, lang }) => {
                         onClick={() => setIsExpanded(!isExpanded)}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="px-8 py-3 border border-[#C5A880] text-[#C5A880] uppercase tracking-widest text-sm hover:bg-[#C5A880] hover:text-black transition-colors duration-300"
+                        className="px-8 py-3 border border-[#D4AF37] text-[#D4AF37] uppercase tracking-widest text-sm hover:bg-[#D4AF37] hover:text-black transition-colors duration-300"
                     >
                         {isExpanded
                             ? (lang === 'ar' ? 'إخفاء الصور' : 'View Less')

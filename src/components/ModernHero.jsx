@@ -8,13 +8,12 @@ const ModernHero = ({ t, lang }) => {
     const { scrollY } = useScroll();
     const yBg = useTransform(scrollY, [0, 500], [0, 200]); // Parallax effect
 
-    // Background Video Autoplay (Muted at all times)
     useEffect(() => {
         const video = videoRef.current;
         if (!video) return;
 
         video.muted = true;
-        video.play().catch(e => console.warn("Muted video autoplay.", e));
+        video.play().catch(e => console.warn("Video playback initialized as muted.", e));
     }, []);
 
     return (
@@ -45,7 +44,7 @@ const ModernHero = ({ t, lang }) => {
                 />
 
                 {/* Overlay gradient - Reduced opacity for better video visibility */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-black/10 to-black/20"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/10 to-black/20"></div>
 
 
             </div>
@@ -58,7 +57,7 @@ const ModernHero = ({ t, lang }) => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1, delay: 1.5, ease: "easeOut" }}
-                    className="text-white text-sm md:text-base uppercase mb-6 tracking-[0.5em]" // Fixed tracking
+                    className="text-[#f5f5f0] text-sm md:text-base uppercase mb-6 tracking-[0.5em]" // Fixed tracking
                 >
                     {t?.subtitle || "THE NEW COLLECTION"}
                 </motion.h2>
@@ -69,7 +68,7 @@ const ModernHero = ({ t, lang }) => {
                         initial={{ opacity: 0, y: 40, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         transition={{ duration: 1.2, delay: 1.8, ease: "easeOut" }} // Simple EaseOut
-                        className={`text-white text-5xl md:text-7xl lg:text-9xl font-bold drop-shadow-2xl ${lang === 'ar' ? 'font-amiri leading-normal' : 'font-serif leading-[0.9]'}`}
+                        className={`text-[#f5f5f0] text-5xl md:text-7xl lg:text-9xl font-bold drop-shadow-2xl ${lang === 'ar' ? 'font-amiri leading-normal' : 'font-serif leading-[0.9]'}`}
                     >
                         {lang === 'ar' ? 'إبراهيم العراقي' : 'IBRAHIM AL-IRAQI'}
                     </motion.h1>
@@ -90,7 +89,7 @@ const ModernHero = ({ t, lang }) => {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.8, delay: 2.6, type: "spring", stiffness: 100 }} // Delayed to 2.6s
-                    whileHover={{ scale: 1.05, backgroundColor: "#C5A880", color: "#fff" }}
+                    whileHover={{ scale: 1.05, backgroundColor: "#e8b91dff", color: "#fff" }}
                     whileTap={{ scale: 0.95 }}
                     className="bg-white text-black px-12 py-5 uppercase tracking-[0.2em] text-xs font-bold transition-all shadow-2xl hover:shadow-gold/20"
                 >
@@ -104,7 +103,7 @@ const ModernHero = ({ t, lang }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1, y: [0, 10, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity, delay: 2.0 }}
-                className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/50 text-xs tracking-widest cursor-pointer hover:text-white transition-colors"
+                className="absolute bottom-10 left-1/2 -translate-x-1/2 text-[#f5f5f0]/50 text-xs tracking-widest cursor-pointer hover:text-[#f5f5f0] transition-colors"
                 onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
             >
                 {t?.scroll || "SCROLL"}

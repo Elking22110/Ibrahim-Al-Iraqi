@@ -53,35 +53,10 @@ const TailoringSection = ({ t, lang }) => {
                     }
                 }
             );
-
-            // Subtle parallax shift for image (Y-axis only, no scale on scroll)
-            gsap.fromTo(imageRef.current,
-                {
-                    yPercent: -10
-                },
-                {
-                    yPercent: 10,
-                    ease: "none",
-                    scrollTrigger: {
-                        trigger: imageContainerRef.current,
-                        start: "top bottom",
-                        end: "bottom top",
-                        scrub: true
-                    }
-                }
-            );
         }, sectionRef);
 
         return () => ctx.revert();
     }, []);
-
-    const handleMouseEnter = () => {
-        gsap.to(imageRef.current, { scale: 1.08, duration: 0.8, ease: "power2.out" });
-    };
-
-    const handleMouseLeave = () => {
-        gsap.to(imageRef.current, { scale: 1.0, duration: 0.8, ease: "power2.out" });
-    };
 
     return (
         <section id="bespoke" ref={sectionRef} className={`w-full py-32 relative overflow-hidden ${lang === 'ar' ? 'font-cairo' : ''}`}>
@@ -92,8 +67,8 @@ const TailoringSection = ({ t, lang }) => {
                     ref={textRef}
                     className="w-full md:w-1/2"
                 >
-                    <h5 className="animate-text-item text-[#C5A880] text-xs uppercase tracking-[0.3em] mb-4">{t?.label || "CRAFTSMANSHIP"}</h5>
-                    <h2 className={`animate-text-item text-5xl md:text-7xl text-white mb-8 leading-[1.1] ${lang === 'ar' ? 'font-amiri' : 'font-serif'}`}>
+                    <h5 className="animate-text-item text-[#D4AF37] text-xs uppercase tracking-[0.3em] mb-4">{t?.label || "CRAFTSMANSHIP"}</h5>
+                    <h2 className={`animate-text-item text-5xl md:text-7xl text-[#f5f5f0] mb-8 leading-[1.1] ${lang === 'ar' ? 'font-amiri' : 'font-serif'}`}>
                         {t?.titlePart1 || "The Art of"} <br />
                         <i className={`${lang === 'ar' ? 'font-amiri text-gold' : 'font-pinyon'} text-6xl md:text-8xl`}>
                             {t?.titlePart2 || "Bespoke"}
@@ -105,21 +80,21 @@ const TailoringSection = ({ t, lang }) => {
                     <ul className="space-y-4 text-gray-300 text-sm font-semibold tracking-wide uppercase">
                         {t?.bullets?.map((item, index) => (
                             <li key={index} className="animate-text-item flex items-center gap-3">
-                                <span className="w-2 h-2 bg-[#C5A880] rounded-full shrink-0"></span>
+                                <span className="w-2 h-2 bg-[#D4AF37] rounded-full shrink-0"></span>
                                 {item}
                             </li>
                         )) || (
                             <>
                                 <li className="animate-text-item flex items-center gap-3">
-                                    <span className="w-2 h-2 bg-[#C5A880] rounded-full"></span>
+                                    <span className="w-2 h-2 bg-[#D4AF37] rounded-full"></span>
                                     Floating Canvas Construction
                                 </li>
                                 <li className="animate-text-item flex items-center gap-3">
-                                    <span className="w-2 h-2 bg-[#C5A880] rounded-full"></span>
+                                    <span className="w-2 h-2 bg-[#D4AF37] rounded-full"></span>
                                     Hand-Pad Stitched Lapels
                                 </li>
                                 <li className="animate-text-item flex items-center gap-3">
-                                    <span className="w-2 h-2 bg-[#C5A880] rounded-full"></span>
+                                    <span className="w-2 h-2 bg-[#D4AF37] rounded-full"></span>
                                     Functioning Button Cuffs
                                 </li>
                             </>
@@ -127,20 +102,18 @@ const TailoringSection = ({ t, lang }) => {
                     </ul>
                 </div>
 
-                {/* Image */}
+                {/* Image (Aspect ratio changed to aspect-[2/3] and hover-only zoom added) */}
                 <div className="w-full md:w-1/2 relative">
                     <div 
                         ref={imageContainerRef} 
-                        className="aspect-[2/3] overflow-hidden rounded-sm relative group bg-[#111] border border-white/5"
+                        className="aspect-[2/3] overflow-hidden rounded-sm relative group bg-[#111]"
                         style={{ clipPath: 'inset(100% 0% 0% 0%)' }}
-                        onMouseEnter={handleMouseEnter}
-                        onMouseLeave={handleMouseLeave}
                     >
                         <img
                             ref={imageRef}
                             src="https://res.cloudinary.com/dfxh95yzm/image/upload/f_auto,q_auto,w_800/v1769970966/founder_ypgvjx.jpg"
                             alt="Tailoring Art"
-                            className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-[opacity,filter] duration-700 opacity-90 group-hover:opacity-100"
+                            className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 opacity-90 group-hover:opacity-100 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 border border-white/10 m-4"></div>
 
@@ -149,7 +122,7 @@ const TailoringSection = ({ t, lang }) => {
                             <h3 className={`text-white text-xl tracking-widest uppercase ${lang === 'ar' ? 'font-amiri' : 'font-serif'}`}>
                                 {lang === 'ar' ? 'إبراهيم العراقي' : 'IBRAHIM AL-IRAQI'}
                             </h3>
-                            <p className="text-[#C5A880] text-xs uppercase tracking-[0.2em] mt-2">
+                            <p className="text-[#D4AF37] text-xs uppercase tracking-[0.2em] mt-2">
                                 {t?.founderRole || "Master Tailor & Founder"}
                             </p>
                         </div>

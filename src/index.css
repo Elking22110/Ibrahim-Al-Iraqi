@@ -9,14 +9,14 @@ body {
   padding: 0;
   background-color: #0A0A0A;
   /* Deep Cinematic Dark */
-  color: #ffffff;
+  color: #F5F5F0;
   overflow-x: hidden;
   width: 100%;
 }
 
 /* Custom Selection Color */
 ::selection {
-  background-color: #C5A880;
+  background-color: #D4AF37;
   color: #000000;
 }
 
@@ -30,7 +30,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #C5A880;
+  background: #D4AF37;
   border-radius: 4px;
 }
 

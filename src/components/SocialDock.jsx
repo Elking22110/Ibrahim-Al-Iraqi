@@ -51,7 +51,7 @@ const SocialDock = ({ lang }) => {
                 >
                     {/* Glass Container */}
                     <motion.div
-                        className="w-14 h-14 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center relative overflow-hidden transform-style-3d transition-all duration-500 group-hover:border-[#C5A880]"
+                        className="w-14 h-14 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center relative overflow-hidden transform-style-3d transition-all duration-500 group-hover:border-[#D4AF37]"
                         style={{ transformStyle: 'preserve-3d' }}
                         whileHover={{ rotateY: 360, rotateX: 15 }}
                         transition={{ duration: 0.8 }}
@@ -60,7 +60,7 @@ const SocialDock = ({ lang }) => {
                         <div className={`absolute inset-0 bg-gradient-to-br ${social.color} opacity-0 group-hover:opacity-20 transition-opacity duration-500`}></div>
 
                         {/* Icon */}
-                        <span className="text-2xl text-white group-hover:text-[#C5A880] transition-colors duration-300 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+                        <span className="text-2xl text-[#f5f5f0] group-hover:text-[#D4AF37] transition-colors duration-300 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
                             {social.icon}
                         </span>
 
@@ -69,7 +69,7 @@ const SocialDock = ({ lang }) => {
                     </motion.div>
 
                     {/* Tooltip Label */}
-                    <span className="absolute right-full mr-4 top-1/2 -translate-y-1/2 text-xs font-bold tracking-widest text-[#C5A880] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
+                    <span className="absolute right-full mr-4 top-1/2 -translate-y-1/2 text-xs font-bold tracking-widest text-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
                         {social.label}
                     </span>
 

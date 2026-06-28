@@ -8,8 +8,9 @@ export default {
   theme: {
   	extend: {
   		colors: {
-  			gold: '#C5A880',
-  			'gold-light': '#E2CEB1',
+  			white: '#F5F5F0',
+  			gold: '#D4AF37',
+  			'gold-light': '#F4DF4E',
   			'light-bg': '#f5f5f0',
   			charcoal: '#1a1a1a',
   			'card-bg': '#ffffff',

@@ -12,7 +12,7 @@ const images = [
 
 const GallerySection = ({ t, lang }) => {
     return (
-        <section id="gallery" className={`w-full py-24 bg-[#050505] relative overflow-hidden ${lang === 'ar' ? 'font-cairo' : ''}`}>
+        <section id="gallery" className={`w-full py-24 bg-[#0a0a0a] relative overflow-hidden ${lang === 'ar' ? 'font-cairo' : ''}`}>
             {/* Background Glow */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
                 <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#D4AF37]/5 rounded-full blur-[120px]"></div>
@@ -37,7 +37,7 @@ const GallerySection = ({ t, lang }) => {
                         scrollEnd='bottom bottom-=20%'
                         stagger={0.1}
                         containerClassName={`mb-6 ${lang === 'ar' ? 'font-amiri' : 'font-serif'}`}
-                        textClassName="text-4xl md:text-6xl text-white"
+                        textClassName="text-4xl md:text-6xl text-[#f5f5f0]"
                     >
                         {lang === 'ar' ? 'إبداع بلا حدود' : 'Timeless Elegance'}
                     </ScrollFloat>

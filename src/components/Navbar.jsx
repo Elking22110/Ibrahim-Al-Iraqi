@@ -52,7 +52,7 @@ const Navbar = ({ lang, setLang, t }) => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 1.2 }}
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className={`text-sm md:text-lg font-bold tracking-[0.2em] cursor-pointer text-white whitespace-nowrap ${lang === 'ar' ? 'font-amiri tracking-normal text-xl' : 'font-serif'}`}
+                className={`text-sm md:text-lg font-bold tracking-[0.2em] cursor-pointer text-[#f5f5f0] whitespace-nowrap ${lang === 'ar' ? 'font-amiri tracking-normal text-xl' : 'font-serif'}`}
             >
                 {t.brand}
             </motion.div>
@@ -68,7 +68,7 @@ const Navbar = ({ lang, setLang, t }) => {
                     <li
                         key={index}
                         onClick={() => scrollToSection(link.id)}
-                        className="hover:text-[#C5A880] transition-colors cursor-pointer"
+                        className="hover:text-[#D4AF37] transition-colors cursor-pointer"
                     >
                         {link.name}
                     </li>
@@ -86,7 +86,7 @@ const Navbar = ({ lang, setLang, t }) => {
                 <button
                     onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
                     aria-label={lang === 'en' ? 'Switch to Arabic' : 'Switch to English'} // Added for A11y
-                    className="text-xs font-bold text-white/70 hover:text-[#C5A880] transition-colors uppercase tracking-widest"
+                    className="text-xs font-bold text-[#f5f5f0]/70 hover:text-[#D4AF37] transition-colors uppercase tracking-widest"
                 >
                     {lang === 'en' ? 'AR' : 'EN'}
                 </button>
@@ -97,7 +97,7 @@ const Navbar = ({ lang, setLang, t }) => {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={t.cta || "Contact Us"} // Added for A11y
-                    className={`px-6 py-2 border text-[10px] uppercase tracking-widest font-bold transition-all no-underline ${scrolled ? 'border-white/20 hover:bg-white hover:text-black' : 'border-white text-white hover:bg-white hover:text-black'}`}
+                    className={`px-6 py-2 border text-[10px] uppercase tracking-widest font-bold transition-all no-underline ${scrolled ? 'border-white/20 hover:bg-white hover:text-black' : 'border-white text-[#f5f5f0] hover:bg-white hover:text-black'}`}
                 >
                     {t.cta}
                 </a>
