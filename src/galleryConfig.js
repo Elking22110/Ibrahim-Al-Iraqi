@@ -3,7 +3,7 @@
 
 export const galleryAlbums = [
     {
-        "name": "Collection",
+        "name": "Classic",
         "images": [
             "IMG_0199.JPG.jpeg",
             "IMG_0201.JPG.jpeg",

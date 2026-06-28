@@ -25,27 +25,58 @@ const CollectionGrid = ({ t, lang, albums = [] }) => {
 
     // Default placeholders for the 4 vertical accordion columns
     const defaultCovers = [
-        '/The Gallery/Collection/IMG_0199.JPG.jpeg',
-        '/The Gallery/Collection/IMG_0201.JPG.jpeg',
-        '/The Gallery/Collection/IMG_0205.JPG.jpeg',
-        '/The Gallery/Collection/IMG_0207.JPG.jpeg'
+        '/The Gallery/Classic/IMG_0199.JPG.jpeg',
+        '/The Gallery/Classic/IMG_0201.JPG.jpeg',
+        '/The Gallery/Classic/IMG_0205.JPG.jpeg',
+        '/The Gallery/Classic/IMG_0207.JPG.jpeg'
     ];
 
     const defaultNames = [
-        lang === 'ar' ? 'بدل كلاسيك' : 'Classic Suits',
+        lang === 'ar' ? 'كلاسيكي' : 'Classic',
         lang === 'ar' ? 'بدل زفاف' : 'Wedding Suits',
-        lang === 'ar' ? 'بدل كاجوال' : 'Casual Suits',
-        lang === 'ar' ? 'تفصيل خاص' : 'Bespoke Suits'
+        lang === 'ar' ? 'كاجوال' : 'Casual',
+        lang === 'ar' ? 'بدل فاخرة' : 'Luxury Suits'
     ];
+
+    // Find custom albums that map to the 4 categories
+    const getAlbumForColumn = (index) => {
+        if (index === 0) {
+            return albums.find(a => {
+                const n = a.name.toLowerCase();
+                return n.includes('classic') || n.includes('collection') || n.includes('كلاسيك');
+            });
+        }
+        if (index === 1) {
+            return albums.find(a => {
+                const n = a.name.toLowerCase();
+                return n.includes('wedding') || n.includes('زفاف');
+            });
+        }
+        if (index === 2) {
+            return albums.find(a => {
+                const n = a.name.toLowerCase();
+                return n.includes('casual') || n.includes('كاجوال');
+            });
+        }
+        if (index === 3) {
+            return albums.find(a => {
+                const n = a.name.toLowerCase();
+                return n.includes('luxury') || n.includes('فاخر');
+            });
+        }
+        return null;
+    };
 
     // Build exactly 4 columns
     const columnsData = Array.from({ length: 4 }).map((_, index) => {
-        const album = albums[index];
+        const album = getAlbumForColumn(index);
+        const colName = defaultNames[index];
+
         if (album) {
             const cover = getAlbumCover(album);
             return {
                 id: album.name,
-                name: album.name,
+                name: colName,
                 coverUrl: cover ? getImgSrc(album.name, cover) : defaultCovers[index],
                 images: album.images,
                 isPlaceholder: false
@@ -53,7 +84,7 @@ const CollectionGrid = ({ t, lang, albums = [] }) => {
         } else {
             return {
                 id: `placeholder-${index}`,
-                name: defaultNames[index],
+                name: colName,
                 coverUrl: defaultCovers[index],
                 images: [],
                 isPlaceholder: true
@@ -203,7 +234,7 @@ const CollectionGrid = ({ t, lang, albums = [] }) => {
                                                 className="break-inside-avoid relative group overflow-hidden rounded-xl border border-white/5 bg-zinc-900/20"
                                             >
                                                 <img
-                                                    src={getImgSrc(activeColumn.name, img)}
+                                                    src={getImgSrc(activeColumn.id, img)}
                                                     alt={`${activeColumn.name} ${index + 1}`}
                                                     className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700 cursor-zoom-in"
                                                     loading="lazy"
