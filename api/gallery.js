@@ -26,12 +26,7 @@ export default async function handler(req, res) {
 
             const images = (resources.resources || []).map(r => ({
                 publicId: r.public_id,
-                url: cloudinary.url(r.public_id, {
-                    fetch_format: 'webp',
-                    quality: 'auto',
-                    width: 1200,
-                    crop: 'limit',
-                }),
+                url: r.secure_url,
                 filename: r.public_id.split('/').pop(),
                 width: r.width,
                 height: r.height,
