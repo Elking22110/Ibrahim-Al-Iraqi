@@ -9,14 +9,24 @@ const getImgSrc = (albumName, img) => {
     return `/The Gallery/${encodeURIComponent(albumName)}/${encodeURIComponent(img)}`;
 };
 
-// Helper: get album cover image object
+// Helper: get album cover image from suits or legacy images
 const getAlbumCover = (album) => {
-    if (!album?.images?.length) return null;
-    const cover = album.images.find(img => {
-        const name = typeof img === 'object' ? img.filename : img;
-        return name && name.toLowerCase().startsWith('cover');
-    });
-    return cover || album.images[0];
+    // New structure: suits array
+    if (album?.suits?.length) {
+        // Find cover from first suit's coverImage or images
+        const firstSuit = album.suits[0];
+        if (firstSuit?.coverImage?.url) return { url: firstSuit.coverImage.url };
+        if (firstSuit?.images?.length) return firstSuit.images[0];
+    }
+    // Legacy fallback: direct images array
+    if (album?.images?.length) {
+        const cover = album.images.find(img => {
+            const name = typeof img === 'object' ? img.filename : img;
+            return name && name.toLowerCase().startsWith('cover');
+        });
+        return cover || album.images[0];
+    }
+    return null;
 };
 
 const CollectionGrid = ({ t, lang, albums = [], onNavigate }) => {
@@ -64,11 +74,13 @@ const CollectionGrid = ({ t, lang, albums = [], onNavigate }) => {
             Luxury: '/The Gallery/Classic/IMG_0207.JPG.jpeg'
         };
 
+        const suitCount = realAlbum?.suits?.length ?? realAlbum?.images?.length ?? 0;
+
         return {
             id: realAlbum ? realAlbum.name : cat.id,
             name: cat.defaultName,
             coverUrl: cover ? getImgSrc(realAlbum.name, cover) : defaultCovers[cat.id],
-            images: realAlbum ? realAlbum.images : [],
+            suitCount,
             isPlaceholder: !realAlbum
         };
     });
@@ -83,11 +95,12 @@ const CollectionGrid = ({ t, lang, albums = [], onNavigate }) => {
         return !isClassic && !isWedding && !isCasual && !isLuxury;
     }).map(a => {
         const cover = getAlbumCover(a);
+        const suitCount = a.suits?.length ?? a.images?.length ?? 0;
         return {
             id: a.name,
             name: getAlbumDisplayName(a.name, lang),
             coverUrl: cover ? getImgSrc(a.name, cover) : '/The Gallery/Classic/IMG_0199.JPG.jpeg',
-            images: a.images,
+            suitCount,
             isPlaceholder: false
         };
     });
@@ -159,7 +172,9 @@ const CollectionGrid = ({ t, lang, albums = [], onNavigate }) => {
                                     <span className="text-[#D4AF37] text-[10px] tracking-[0.3em] font-bold uppercase mb-2">
                                         {col.isPlaceholder 
                                             ? (lang === 'ar' ? 'قريباً' : 'COMING SOON') 
-                                            : `${col.images.length} ${lang === 'ar' ? 'صورة' : 'PHOTOS'}`}
+                                            : col.suitCount > 0 
+                                                ? `${col.suitCount} ${lang === 'ar' ? 'بدلة' : 'SUITS'}`
+                                                : (lang === 'ar' ? 'استكشف' : 'EXPLORE')}
                                     </span>
                                     <h4 className="text-white text-2xl tracking-[0.15em] font-serif uppercase mb-2 group-hover:text-[#D4AF37] transition-colors duration-300">
                                         {col.name}
